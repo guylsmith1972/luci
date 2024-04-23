@@ -24,6 +24,12 @@
     <Compile Include="Elucidator.py" />
     <Compile Include="ollama.py" />
     <Compile Include="parse.py" />
+    <Compile Include="parse2.py" />
+    <Compile Include="scratch.py" />
+    <Compile Include="testing\example.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="testing\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
