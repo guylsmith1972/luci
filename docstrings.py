@@ -96,8 +96,8 @@ class DocstringService:
     def __init__(self, options):
         self.ollama = OllamaService()
         
-        with open('samples/good_docstring.txt', 'r') as infile:
-            self.good_docstring = infile.read()
+        with open('samples/example_docstring.txt', 'r') as infile:
+            self.example_docstring = infile.read()
         with open('samples/example_function.txt', 'r') as infile:
             self.example_function = infile.read()
             
@@ -113,7 +113,7 @@ class DocstringService:
         return modified_tree.code, transformer.reports
 
     def generate_docstring(self, function_name, function_body, current_docstring):
-        query = queries.generate_docstring_query(function_body, self.example_function, self.good_docstring)
+        query = queries.generate_docstring_query(function_body, self.example_function, self.example_docstring)
         print(query)
         for i in range(self.options.attempts):
             docstring = self.ollama.query(query)
@@ -126,7 +126,7 @@ class DocstringService:
         if not docstring.startswith('"""') or not docstring.endswith('"""') or '"""' in docstring[3:-3]:
             report = f'Failed simple string test (incorrect quoting): {docstring}'
         else:
-            query = queries.generate_validation_query(function_body, docstring, self.good_docstring)
+            query = queries.generate_validation_query(function_body, docstring, self.example_docstring)
             for i in range(self.options.attempts):
                 result = self.ollama.query(query)
                 if result.strip().lower().startswith('correct'):

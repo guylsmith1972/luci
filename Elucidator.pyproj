@@ -40,7 +40,7 @@
     <Content Include="queries\generate_docstring_template.txt" />
     <Content Include="README.md" />
     <Content Include="samples\example_function.txt" />
-    <Content Include="samples\good_docstring.txt" />
+    <Content Include="samples\example_docstring.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
