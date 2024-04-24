@@ -1,8 +1,6 @@
-from tkinter import CURRENT
 from ollama import OllamaService
 import libcst
 import queries
-
 
 def comment_brief(str, options):
     if options.log_level > 0:
@@ -11,7 +9,6 @@ def comment_brief(str, options):
 def comment_verbose(str, options):
     if options.log_level > 1:
         print(str)
-
 
 class DocstringService:
     class DocstringUpdater(libcst.CSTTransformer):
