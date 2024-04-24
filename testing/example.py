@@ -1,6 +1,3 @@
-import os
-import ast
-import astor
 
 
 def check(n):
