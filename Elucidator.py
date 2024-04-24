@@ -18,10 +18,12 @@ def main():
                         help='Modify the original files with new changes. If -p is also specified, will prompt user before modifying the file.')
     parser.add_argument('-p', '--preview', action='store_true',
                         help='Preview the content of the files without making changes unless -m is also specified, in which case it will prompt user before modifying the file.')
+    parser.add_argument('-r', '--report', action='store_true',
+                        help='Show report after each file is processed.')
     parser.add_argument('-u', '--update', action='store_true',
-                        help='Update existing docstrings.')
+                        help='Update existing docstrings. If -v is specified, will only update if current docstring failed validation.')
     parser.add_argument('-v', '--validate', action='store_true',
-                        help='Validate that the docstrings in the file correctly describe the source code.')
+                        help='Validate that the docstrings in the file correctly describe the source code. If -u is also specified, update will only occur if validation fails.')
     
     # Adding positional argument for filenames
     parser.add_argument('filenames', nargs='*',
@@ -44,7 +46,7 @@ def main():
     for filename in args.filenames:
         print(f'Processing {filename}')
         # Call the document_file function with the filename and list of options
-        modified_file = docstring_service.document_file(filename)
+        modified_file, reports = docstring_service.document_file(filename)
         if args.preview:
             print(modified_file)
 
@@ -64,6 +66,11 @@ def main():
                 print(f'Updated {filename}')
             else:
                 print(f'{filename} was NOT updated.')
+        
+        if args.report and reports is not None and len(reports) > 0:
+            print('-' * 79)
+            for report in reports:
+                print(report)
 
 
 if __name__ == '__main__':

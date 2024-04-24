@@ -1,7 +1,7 @@
-import os
 from tkinter import CURRENT
 from ollama import OllamaService
 import libcst
+import queries
 
 
 def comment_brief(str, options):
@@ -20,7 +20,8 @@ class DocstringService:
             self.function_level = 0
             self.default_indent = default_indent
             self.docstring_service = docstring_service
-            self.options = docstring_service.get_options()
+            self.options = docstring_service.options
+            self.reports = []
             
         def convert_functiondef_to_string(self, function_def):
             code = libcst.Module([])
@@ -42,19 +43,28 @@ class DocstringService:
         def leave_FunctionDef(self, original_node, updated_node):
             action_taken = "did nothing"
 
+            function_name = updated_node.name.value
+
             if self.function_level > self.options.depth or self.class_level > self.options.depth:
                 action_taken = f'skipped due to high nesting level -- function_level: {self.function_level}, class_level: {self.class_level}'
             else:
                 current_docstring = updated_node.get_docstring()
-                
                 function_code = self.convert_functiondef_to_string(updated_node)
                             
                 if current_docstring is not None:
-                    if self.options.update:
+                    do_update = self.options.update
+                    if self.options.validate:
+                        comment_brief('Validating existing docstring', self.options)
+                        validated, assessment = self.docstring_service.validate_docstring(function_name, function_code, f'"""{current_docstring}"""')
+                        if validated:
+                            do_update = False
+                        report = f'Validation report for {function_name}: {"PASS" if validated else "FAILED"}: {assessment}'
+                        self.reports.append(report)
+                    if do_update:
                         # Replace existing docstring
                         comment_brief('Replacing existing docstring', self.options)
                         comment_verbose(f'existing docstring: {current_docstring}', self.options)
-                        new_docstring = self.docstring_service.generate_docstring(updated_node.name.value, function_code, current_docstring)
+                        new_docstring = self.docstring_service.generate_docstring(function_name, function_code, current_docstring)
                         body_statements = list(updated_node.body.body)
                         if isinstance(body_statements[0], libcst.SimpleStatementLine) and isinstance(body_statements[0].body[0], libcst.Expr):
                             if isinstance(body_statements[0].body[0].value, libcst.SimpleString):
@@ -67,7 +77,7 @@ class DocstringService:
                     if self.options.create:
                         # Append new docstring
                         comment_brief('Creating a new docstring', self.options)
-                        new_docstring = self.docstring_service.generate_docstring(updated_node.name.value, function_code, current_docstring)
+                        new_docstring = self.docstring_service.generate_docstring(function_name, function_code, current_docstring)
                         if new_docstring is not None:
                             body_statements = [libcst.SimpleStatementLine([libcst.Expr(libcst.SimpleString(f'"""{new_docstring}"""'))])] + list(updated_node.body.body)
                             updated_body = libcst.IndentedBlock(body=body_statements)
@@ -78,20 +88,19 @@ class DocstringService:
                             action_taken = "failed to create new docstring, leaving as-is"
 
             self.function_level -= 1
-            comment_brief(f"Action taken: {updated_node.name.value} - {action_taken}", self.options)
+            report = f"{function_name}: {action_taken}"
+            comment_brief(report, self.options)
+            self.reports.append(report)
             return updated_node
 
     def __init__(self, options):
         self.ollama = OllamaService()
         
-        def load_query(filename):
-            """ Load a query from a file in the 'queries' directory. """
-            with open(os.path.join('queries', filename)) as infile:
-                query = infile.read()
-            return query
-
-        self.generate_docstring_template = load_query('generate_docstring_template.txt')
-        self.check_docstring_template = load_query('check_docstring_template.txt')
+        with open('samples/good_docstring.txt', 'r') as infile:
+            self.good_docstring = infile.read()
+        with open('samples/example_function.txt', 'r') as infile:
+            self.example_function = infile.read()
+            
         self.options = options
 
     def document_file(self, file_path):
@@ -101,40 +110,28 @@ class DocstringService:
         tree = libcst.parse_module(source_code)
         transformer = DocstringService.DocstringUpdater(self, tree)
         modified_tree = tree.visit(transformer)
-        return modified_tree.code
+        return modified_tree.code, transformer.reports
 
     def generate_docstring(self, function_name, function_body, current_docstring):
-        query = self.generate_docstring_template + f"""{function_body}
-
-            Please write a detailed doc string for the above python function named {function_name}.
-            If there is already a docstring, make any necessary corrections to the string.
-            Respond with only the text of the docstring.
-            """
-        comment_verbose(query, self.options)
+        query = queries.generate_docstring_query(function_body, self.example_function, self.good_docstring)
+        print(query)
         for i in range(self.options.attempts):
             docstring = self.ollama.query(query)
             if self.validate_docstring(function_name, function_body, docstring):
                 return docstring.strip('"').strip("'")
         return None
     
-    def get_options(self):
-        return self.options
-
     def validate_docstring(self, function_name, function_body, docstring):
-        if docstring.startswith('"""') and docstring.endswith('"""'):
-            if '"""' not in docstring[3:-3]:
-                query = self.check_docstring_template + f"""{function_body}
-
-                Please check if the docstring that follows correctly describes the above Python function named {function_name}.
-                If the docstring is correct, respond with only the word "correct".
-                If the docstring is incorrect, response with only the word "incorrect" followed by a colon and explanation.
-
-                docstring: {docstring}
-                """
-                for i in range(self.options.attempts):
-                    result = self.ollama.query(query)
-                    if result.strip().lower().startswith('correct'):
-                        return True
-                    else:
-                        pass
-        return False
+        report = None
+        if not docstring.startswith('"""') or not docstring.endswith('"""') or '"""' in docstring[3:-3]:
+            report = f'Failed simple string test (incorrect quoting): {docstring}'
+        else:
+            query = queries.generate_validation_query(function_body, docstring, self.good_docstring)
+            for i in range(self.options.attempts):
+                result = self.ollama.query(query)
+                if result.strip().lower().startswith('correct'):
+                    return True, result
+                else:
+                    report = result
+                    
+        return False, report

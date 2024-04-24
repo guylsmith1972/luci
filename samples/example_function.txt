@@ -1,0 +1,15 @@
+def update_docstring(filename, function_name, new_docstring):
+    """ Hello, world! """
+    with open(filename, "r") as file:
+        source_code = file.read()
+
+    tree = ast.parse(source_code)
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef) and node.name == function_name:
+            # Create a new docstring node
+            node.body.insert(0, ast.Expr(value=ast.Str(s=new_docstring)))
+            break
+    
+    # Write back the modified code
+    with open(filename, "w") as file:
+        file.write(astor.to_source(tree))
