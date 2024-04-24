@@ -11,6 +11,9 @@
     <OutputPath>.</OutputPath>
     <Name>Elucidator</Name>
     <RootNamespace>Elucidator</RootNamespace>
+    <LaunchProvider>Standard Python launcher</LaunchProvider>
+    <CommandLineArguments>-cupml 1 testing\example.py</CommandLineArguments>
+    <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -22,14 +25,19 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Elucidator.py" />
+    <Compile Include="docstrings.py" />
     <Compile Include="ollama.py" />
     <Compile Include="parse.py" />
-    <Compile Include="parse2.py" />
     <Compile Include="scratch.py" />
     <Compile Include="testing\example.py" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="queries\" />
     <Folder Include="testing\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="queries\check_docstring_template.txt" />
+    <Content Include="queries\generate_docstring_template.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

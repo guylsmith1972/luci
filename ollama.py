@@ -1,71 +1,44 @@
+import os
 import requests
 import subprocess
 
+class OllamaService:
+    _instance = None  # Singleton instance placeholder
 
-def query_llm(prompt):
-    """
-Queries the LLaMA Large Language Model using its API.
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(OllamaService, cls).__new__(cls)
+            cls.ollama_process = None  # Process placeholder
+        return cls._instance
 
-This function sends a POST request to the LLaMA API with the provided prompt
-and retrieves the response from the model. The function returns the response
-as JSON, which can be further processed by the caller.
+    def load_query(self, filename):
+        """ Load a query from a file in the 'queries' directory. """
+        with open(os.path.join('queries', filename)) as infile:
+            query = infile.read()
+        return query
 
-Parameters:
-prompt (str): The input text to query the language model with.
+    def query(self, prompt):
+        """ Query the LLM process with a given prompt, starting the process if not already started. """
+        if self.ollama_process is None:
+            self.start()
 
-Returns:
-dict: A dictionary containing the response from the LLaMA API.
-       If an error occurs during the request, a dictionary with a single key-value pair 'error' will be returned.
+        url = 'http://localhost:11434/api/generate'
+        headers = {'Content-Type': 'application/json'}
+        data = {'model': 'llama3', 'prompt': prompt, 'stream': False}
+        try:
+            response = requests.post(url, headers=headers, json=data)
+            response.raise_for_status()
+            return response.json()['response']
+        except requests.RequestException as e:
+            return {'error': str(e)}
 
-Raises:
-requests.RequestException: If there is an issue making the HTTP request to the API.
-"""
-    url = 'http://localhost:11434/api/generate'
-    headers = {'Content-Type': 'application/json'}
-    data = {'model': 'llama3', 'prompt': prompt, 'stream': False}
-    try:
-        response = requests.post(url, headers=headers, json=data)
-        response.raise_for_status()
-        return response.json()['response']
-    except requests.RequestException as e:
-        return {'error': str(e)}
+    def start(self):
+        """ Start the Ollama process if not already running. """
+        if self.ollama_process is None:
+            self.ollama_process = subprocess.Popen(['ollama', 'serve'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-
-def start():
-    """
-Starts the Ollama server as a background process.
-
-This function runs the Ollama server in a separate process, allowing it to
-run concurrently with other Python processes. The server is started using
-the `ollama` command-line tool and its output is redirected to the Python
-process's standard input/output streams.
-
-Raises:
-SubprocessError: If the Ollama server cannot be started or if an error
-occurs while running the server.
-
-Returns:
-None: The function does not return any value. It starts the server as a
-background process.
-"""
-    global ollama_process
-    llama_process = subprocess.Popen(['ollama', 'serve'], stdout=subprocess
-        .PIPE, stderr=subprocess.PIPE)
-
-
-def stop():
-    """
-Stops an Ollama process, if one exists, and waits for it to complete.
-This function checks if an Ollama process is running and terminates it
-if so. It then waits until the process has finished executing before returning.
-If no Ollama process is running, this function does nothing.
-
-Raises:
-None: This function does not raise any exceptions.
-
-Returns:
-None: The function does not return any value.
-"""
-    if ollama_process:
-        ollama_process.terminate()
-        ollama_process.wait()
+    def stop(self):
+        """ Stop the Ollama process if it is running. """
+        if self.ollama_process:
+            self.ollama_process.terminate()
+            self.ollama_process.wait()

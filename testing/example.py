@@ -3,12 +3,16 @@ import ast
 import astor
 
 
-def check(arg):
-    return arg == 42
+def check(n):
+    """ Calculates n factorial."""
+    return n == 42
 
 
 def get_function_code(node, source_code):
-    return ast.get_source_segment(source_code, node)
+    def helper(a, b):
+        return ast.get_source_segment(a, b)
+
+    return helper(source_code, node)
 
 
 def get_function_parameters(function_node):
@@ -52,8 +56,13 @@ def update_docstring(filename, function_name, new_docstring):
 
 
 class Foo:
+
     def __init__(self):
         self.bar = 10
 
     def check(self, arg):
         return arg == self.bar
+    
+    class Bar:
+        def __init__(self):
+            print('Hello, world!')
