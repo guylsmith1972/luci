@@ -12,7 +12,7 @@
     <Name>Elucidator</Name>
     <RootNamespace>Elucidator</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>-cupml 1 testing\example.py</CommandLineArguments>
+    <CommandLineArguments>-pu testing/example.py</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">

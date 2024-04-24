@@ -1,3 +1,4 @@
+import os
 from tkinter import CURRENT
 from ollama import OllamaService
 import libcst
@@ -82,8 +83,15 @@ class DocstringService:
 
     def __init__(self, options):
         self.ollama = OllamaService()
-        self.generate_docstring_template = self.ollama.load_query('generate_docstring_template.txt')
-        self.check_docstring_template = self.ollama.load_query('check_docstring_template.txt')
+        
+        def load_query(filename):
+            """ Load a query from a file in the 'queries' directory. """
+            with open(os.path.join('queries', filename)) as infile:
+                query = infile.read()
+            return query
+
+        self.generate_docstring_template = load_query('generate_docstring_template.txt')
+        self.check_docstring_template = load_query('check_docstring_template.txt')
         self.options = options
 
     def document_file(self, file_path):

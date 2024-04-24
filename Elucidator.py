@@ -4,28 +4,25 @@ from docstrings import DocstringService
 
 def main():
     # Initialize the parser
-    parser = argparse.ArgumentParser(description="Process some files based on given flags.")
+    parser = argparse.ArgumentParser(description="Create, update, or validate docstrings in Python files.")
 
-    # Adding optional flags
-    parser.add_argument('-c', '--create', action='store_true',
-                        help='Create new entries in the files if applicable.')
-    parser.add_argument('-m', '--modify', action='store_true',
-                        help='Modify the original files with new changes.')
-    parser.add_argument('-p', '--preview', action='store_true',
-                        help='Preview the content of the files without making changes.')
-    parser.add_argument('-u', '--update', action='store_true',
-                        help='Update existing entries in the files.')
-    parser.add_argument('-v', '--validate', action='store_true',
-                        help='Validate the contents of the files for correctness.')
-    
-    # Adding numeric options
-    parser.add_argument('-a', '--attempts', type=int, default=5, choices=range(1, 101),
+    parser.add_argument('-a', '--attempts', type=int, default=5, metavar='[1-100]',
                         help='Set the number of attempts for processing. Must be an integer in the range [1..100].')
-    parser.add_argument('-d', '--depth', type=int, default=1, choices=range(1, 101),
+    parser.add_argument('-c', '--create', action='store_true',
+                        help='Create new docstrings for functions that do not currently have one.')
+    parser.add_argument('-d', '--depth', type=int, default=1, metavar='[1-100]',
                         help='Set the depth for processing. Must be an integer in the range [1..100].')
     parser.add_argument('-l', '--log-level', type=int, default=0, choices=range(0, 3),
                         help='Set the log level. 0 = no logs, 1 = brief logs, 2 = verbose logs')
-
+    parser.add_argument('-m', '--modify', action='store_true',
+                        help='Modify the original files with new changes. If -p is also specified, will prompt user before modifying the file.')
+    parser.add_argument('-p', '--preview', action='store_true',
+                        help='Preview the content of the files without making changes unless -m is also specified, in which case it will prompt user before modifying the file.')
+    parser.add_argument('-u', '--update', action='store_true',
+                        help='Update existing docstrings.')
+    parser.add_argument('-v', '--validate', action='store_true',
+                        help='Validate that the docstrings in the file correctly describe the source code.')
+    
     # Adding positional argument for filenames
     parser.add_argument('filenames', nargs='*',
                         help='List of filenames to process.')

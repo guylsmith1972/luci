@@ -11,12 +11,6 @@ class OllamaService:
             cls.ollama_process = None  # Process placeholder
         return cls._instance
 
-    def load_query(self, filename):
-        """ Load a query from a file in the 'queries' directory. """
-        with open(os.path.join('queries', filename)) as infile:
-            query = infile.read()
-        return query
-
     def query(self, prompt):
         """ Query the LLM process with a given prompt, starting the process if not already started. """
         if self.ollama_process is None:
