@@ -114,7 +114,6 @@ class DocstringService:
 
     def generate_docstring(self, function_name, function_body, current_docstring):
         query = queries.generate_docstring_query(function_body, self.example_function, self.example_docstring)
-        print(query)
         for i in range(self.options.attempts):
             docstring = self.ollama.query(query)
             if self.validate_docstring(function_name, function_body, docstring):

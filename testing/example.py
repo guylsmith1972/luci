@@ -1,3 +1,5 @@
+# This code is not inteded to be run, and so is missing imports.
+# Use it to test Elucidator.
 
 
 def check(n):
