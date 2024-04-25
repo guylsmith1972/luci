@@ -34,3 +34,28 @@ def generate_validation_query(code, current_docstring, example_docstring):
     query += instructions
 
     return query
+
+
+def generate_docstring(ollama, function_name, function_body, current_docstring, options):
+    query = generate_docstring_query(function_body, options.example_function, options.example_docstring)
+    for i in range(options.attempts):
+        docstring = ollama.query(query)
+        if validate_docstring(ollama, function_name, function_body, docstring, options):
+            return docstring.strip('"').strip("'")
+    return None
+
+    
+def validate_docstring(ollama, function_name, function_body, docstring, options):
+    report = None
+    if not docstring.startswith('"""') or not docstring.endswith('"""') or '"""' in docstring[3:-3]:
+        report = f'Failed simple string test (incorrect quoting): {docstring}'
+    else:
+        query = generate_validation_query(function_body, docstring, options.example_docstring)
+        for i in range(options.attempts):
+            result = ollama.query(query)
+            if result.strip().lower().startswith('correct'):
+                return True, result
+            else:
+                report = result
+                    
+    return False, report

@@ -27,26 +27,26 @@ def main():
     
     # Adding positional argument for filenames
     parser.add_argument('filenames', nargs='*',
-                        help='List of filenames to process.')
+                        help='List of filenames to process. If an undecorated filename is provided, all functions in the file will be examined. The limit the scope of operations, filenames can be decorated by add a colon-separated list of function paths of the form foo.bar.zoo, where foo, bar, and zoo can be the names of functions or classes. Nesting of functions and classes is allowed. If a path is longer than the --depth field,a warning is reported and the function is not processed.')
 
     # Parse the arguments
     args = parser.parse_args()
-
-    # Check if no filenames are provided
-    if not args.filenames:
-        parser.print_usage()
-        sys.exit(1)
-
-    print(args)
         
+    with open('samples/example_docstring.txt', 'r') as infile:
+        args.example_docstring = infile.read()
+    with open('samples/example_function.txt', 'r') as infile:
+        args.example_function = infile.read()
+
     # Create the docstring service
     docstring_service = DocstringService(args)
 
     # Process each file with the document_file function
-    for filename in args.filenames:
-        print(f'Processing {filename}')
+    for decorated_filename in args.filenames:
+        parts = decorated_filename.split(':')
+        filename = parts[0]
+        function_paths = None if len(parts) <= 1 else parts[1:]
         # Call the document_file function with the filename and list of options
-        modified_file, reports = docstring_service.document_file(filename)
+        modified_file, reports = docstring_service.document_file(filename, function_paths)
         if args.preview:
             print(modified_file)
 
