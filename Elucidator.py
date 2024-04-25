@@ -21,18 +21,20 @@ def get_arguments():
                         help='Preview the content of the files without making changes unless -m is also specified, in which case it will prompt user before modifying the file.')
     parser.add_argument('-r', '--report', action='store_true',
                         help='Show report after each file is processed. If the -m flag is present, this flag will cause the user to be prompted before the modification occurs.')
+    parser.add_argument('-s', '--strip', action='store_true',
+                        help='Strip existing docstrings. When used in conjunction with -v, will only strip docstrings that fail validation. Incompatible with -u and -c.')
     parser.add_argument('-u', '--update', action='store_true',
-                        help='Update existing docstrings. If -v is specified, will only update if current docstring failed validation.')
+                        help='Update existing docstrings. If -v is specified, will only update if current docstring failed validation. Incompatible with -s.')
     parser.add_argument('-v', '--validate', action='store_true',
-                        help='Validate that the docstrings in the file correctly describe the source code. If -u is also specified, update will only occur if validation fails.')
+                        help='Validate that the docstrings in the file correctly describe the source code. If -u is specified, update will only occur if validation fails. If -s is specified, docstring will be deleted if validation fails.')
     
     # Adding positional argument for filenames
     parser.add_argument('filenames', nargs='*',
-                        help='List of filenames to process. If an undecorated filename is provided, all functions in the file will be examined. The limit the scope of operations, filenames can be decorated by add a colon-separated list of function paths of the form foo.bar.zoo, where foo, bar, and zoo can be the names of functions or classes. Nesting of functions and classes is allowed. If a path is longer than the --depth field,a warning is reported and the function is not processed.')
+                        help='List of filenames to process. If an undecorated filename is provided, all functions in the file will be examined. The limit the scope of operations, filenames can be decorated by add a colon-separated list of fully-qualified function names of the form foo.bar.zoo, where foo, bar, and zoo can be the names of functions or classes. Nesting of functions and classes is allowed. If a path is longer than the --depth field,a warning is reported and the function is not processed.')
 
     # Parse the arguments
     args = parser.parse_args()
-
+    
     with open('samples/example_docstring.txt', 'r') as infile:
         args.example_docstring = infile.read()
     with open('samples/example_function.txt', 'r') as infile:
@@ -60,16 +62,12 @@ def get_logger(args):
 
 
 def main():
-    """
-    This script processes the docstrings of Python functions using a set of command line options. The main function parses these options, sets up a logger, creates an instance of the DocstringService class, and then iterates over each file to be processed.
-    
-    The process_file function is responsible for processing each file's docstrings based on the options provided. It can create new docstrings, update existing ones, or validate that the existing docstrings are correct. The results of these operations are reported if the report option is enabled.
-    
-    Finally, after all files have been processed, a report of any errors encountered during processing will be printed out. If the modify option is enabled and no preview option was specified, then the script will prompt the user for confirmation before making any changes to the files.
-    """
-    
     args = get_arguments()
     logger = get_logger(args)
+    
+    if args.strip and (args.create or args.update):
+        logger.critical(f'Critical error: cannot use -s with -c or -u')    
+        exit(1)
         
     # Create the docstring service
     docstring_service = DocstringService(args, logger)

@@ -113,7 +113,6 @@ def validate_docstring(ollama, function_name, function_body, docstring, options)
                 return False, result
             parts = parts[1].split(' \t\r\n')
             answer = parts[0].strip()
-            print(f'first thing after answer: {answer}')
             if answer == 'correct':
                 return True, result
             report = result

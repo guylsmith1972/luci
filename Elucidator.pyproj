@@ -12,7 +12,7 @@
     <Name>Elucidator</Name>
     <RootNamespace>Elucidator</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>-cupmvr -l 2 -d 5 docstrings.py:DocstringService.DocstringUpdater.convert_functiondef_to_string</CommandLineArguments>
+    <CommandLineArguments>-mpc -l 2 -d 5 docstrings.py</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
