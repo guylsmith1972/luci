@@ -2,7 +2,8 @@ import argparse
 import logging
 from docstrings import DocstringService
 
-def main():
+
+def get_arguments():
     # Initialize the parser
     parser = argparse.ArgumentParser(description="Create, update, or validate docstrings in Python files.")
 
@@ -37,7 +38,10 @@ def main():
     with open('samples/example_function.txt', 'r') as infile:
         args.example_function = infile.read()
 
+    return args
 
+
+def get_logger(args):
     logger = logging.getLogger(__name__)
     if args.log_level == 0:
         logger.setLevel(logging.CRITICAL)  # No logs shown
@@ -51,6 +55,21 @@ def main():
     formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
     ch.setFormatter(formatter)
     logger.addHandler(ch)
+
+    return logger
+
+
+def main():
+    """
+    This script processes the docstrings of Python functions using a set of command line options. The main function parses these options, sets up a logger, creates an instance of the DocstringService class, and then iterates over each file to be processed.
+    
+    The process_file function is responsible for processing each file's docstrings based on the options provided. It can create new docstrings, update existing ones, or validate that the existing docstrings are correct. The results of these operations are reported if the report option is enabled.
+    
+    Finally, after all files have been processed, a report of any errors encountered during processing will be printed out. If the modify option is enabled and no preview option was specified, then the script will prompt the user for confirmation before making any changes to the files.
+    """
+    
+    args = get_arguments()
+    logger = get_logger(args)
         
     # Create the docstring service
     docstring_service = DocstringService(args, logger)

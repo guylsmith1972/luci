@@ -12,7 +12,7 @@
     <Name>Elucidator</Name>
     <RootNamespace>Elucidator</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>-rcvpm -l 0 testing/example.py:Foo.Bar.__init__ --depth 2</CommandLineArguments>
+    <CommandLineArguments>-cupmv -l 2 -d 5 docstrings.py Elucidator.py ollama.py queries.py</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
