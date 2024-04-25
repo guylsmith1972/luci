@@ -47,9 +47,47 @@ class DocstringService:
             self.function_path.append(node.name.value)
             comment_brief(f"Examining function: {self.get_function_path()}", self.options)
             
+        def update_docstring(self, function_name, function_code, current_docstring, updated_node, action_taken):
+            do_update = self.options.update
+            if self.options.validate:
+                comment_brief('Validating existing docstring', self.options)
+                validated, assessment = queries.validate_docstring(self.docstring_service.ollama, function_name, function_code, f'"""{current_docstring}"""', self.options)
+                if validated:
+                    do_update = False
+                report = f'Validation report for {function_name}: {"PASS" if validated else "FAILED"}: {assessment}'
+                self.reports.append(report)
+            if do_update:
+                # Replace existing docstring
+                comment_brief('Replacing existing docstring', self.options)
+                comment_verbose(f'existing docstring: {current_docstring}', self.options)
+                new_docstring = queries.generate_docstring(self.docstring_service.ollama, function_name, function_code, current_docstring, self.options)
+                body_statements = list(updated_node.body.body)
+                if isinstance(body_statements[0], libcst.SimpleStatementLine) and isinstance(body_statements[0].body[0], libcst.Expr):
+                    if isinstance(body_statements[0].body[0].value, libcst.SimpleString):
+                        body_statements[0] = libcst.SimpleStatementLine([libcst.Expr(libcst.SimpleString(f'"""{new_docstring}"""'))])
+                        action_taken = "updated existing docstring"
+                        comment_verbose(f'new docstring: {new_docstring}', self.options)
+                updated_body = libcst.IndentedBlock(body=body_statements)
+                updated_node = updated_node.with_changes(body=updated_body)
+            return updated_node, action_taken
+        
+        def create_docstring(self, function_name, function_code, current_docstring, updated_node, action_taken):
+            if self.options.create:
+                # Append new docstring
+                comment_brief('Creating a new docstring', self.options)
+                new_docstring = queries.generate_docstring(self.docstring_service.ollama, function_name, function_code, current_docstring, self.options)
+                if new_docstring is not None:
+                    body_statements = [libcst.SimpleStatementLine([libcst.Expr(libcst.SimpleString(f'"""{new_docstring}"""'))])] + list(updated_node.body.body)
+                    updated_body = libcst.IndentedBlock(body=body_statements)
+                    updated_node = updated_node.with_changes(body=updated_body)
+                    comment_verbose(f'new docstring: {new_docstring}', self.options)
+                    action_taken = "created a new docstring"
+                else:
+                    action_taken = "failed to create new docstring, leaving as-is" 
+            return updated_node, action_taken
+                                
         def leave_FunctionDef(self, original_node, updated_node):
             action_taken = "did nothing"
-
             function_name = updated_node.name.value
             function_path = self.get_function_path()
 
@@ -60,51 +98,20 @@ class DocstringService:
             else:
                 do_process = True
                 if self.paths_of_interest is not None:
-                    if function_path not in self.paths_of_interest:
+                    do_process = function_path in self.paths_of_interest 
+                    if not do_process:
                         action_taken = f'Skipped because it is not in the decorated filename list of functions to document.'
-                        do_process = False
                 if do_process:
                     current_docstring = updated_node.get_docstring()
                     function_code = self.convert_functiondef_to_string(updated_node)
                             
-                    if current_docstring is not None:
-                        do_update = self.options.update
-                        if self.options.validate:
-                            comment_brief('Validating existing docstring', self.options)
-                            validated, assessment = queries.validate_docstring(self.docstring_service.ollama, function_name, function_code, f'"""{current_docstring}"""', self.options)
-                            if validated:
-                                do_update = False
-                            report = f'Validation report for {function_name}: {"PASS" if validated else "FAILED"}: {assessment}'
-                            self.reports.append(report)
-                        if do_update:
-                            # Replace existing docstring
-                            comment_brief('Replacing existing docstring', self.options)
-                            comment_verbose(f'existing docstring: {current_docstring}', self.options)
-                            new_docstring = queries.generate_docstring(self.docstring_service.ollama, function_name, function_code, current_docstring, self.options)
-                            body_statements = list(updated_node.body.body)
-                            if isinstance(body_statements[0], libcst.SimpleStatementLine) and isinstance(body_statements[0].body[0], libcst.Expr):
-                                if isinstance(body_statements[0].body[0].value, libcst.SimpleString):
-                                    body_statements[0] = libcst.SimpleStatementLine([libcst.Expr(libcst.SimpleString(f'"""{new_docstring}"""'))])
-                                    action_taken = "updated existing docstring"
-                                    comment_verbose(f'new docstring: {new_docstring}', self.options)
-                            updated_body = libcst.IndentedBlock(body=body_statements)
-                            updated_node = updated_node.with_changes(body=updated_body)
+                    if current_docstring is None:
+                        updated_node, action_taken = self.create_docstring(function_name, function_code, current_docstring, updated_node, action_taken)
                     else:
-                        if self.options.create:
-                            # Append new docstring
-                            comment_brief('Creating a new docstring', self.options)
-                            new_docstring = queries.generate_docstring(self.docstring_service.ollama, function_name, function_code, current_docstring, self.options)
-                            if new_docstring is not None:
-                                body_statements = [libcst.SimpleStatementLine([libcst.Expr(libcst.SimpleString(f'"""{new_docstring}"""'))])] + list(updated_node.body.body)
-                                updated_body = libcst.IndentedBlock(body=body_statements)
-                                updated_node = updated_node.with_changes(body=updated_body)
-                                comment_verbose(f'new docstring: {new_docstring}', self.options)
-                                action_taken = "created a new docstring"
-                            else:
-                                action_taken = "failed to create new docstring, leaving as-is"
+                        updated_node, action_taken = self.update_docstring(function_name, function_code, current_docstring, updated_node, action_taken)
 
             self.function_level -= 1
-            report = f"{function_name}: {action_taken}"
+            report = f"{function_path}: {action_taken}"
             comment_brief(report, self.options)
             self.reports.append(report)
             self.function_path.pop()
