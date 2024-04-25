@@ -1,5 +1,5 @@
 import argparse
-import sys
+import logging
 from docstrings import DocstringService
 
 def main():
@@ -31,14 +31,29 @@ def main():
 
     # Parse the arguments
     args = parser.parse_args()
-        
+
     with open('samples/example_docstring.txt', 'r') as infile:
         args.example_docstring = infile.read()
     with open('samples/example_function.txt', 'r') as infile:
         args.example_function = infile.read()
 
+
+    logger = logging.getLogger(__name__)
+    if args.log_level == 0:
+        logger.setLevel(logging.CRITICAL)  # No logs shown
+    elif args.log_level == 1:
+        logger.setLevel(logging.INFO)  # Brief logs
+    elif args.log_level == 2:
+        logger.setLevel(logging.DEBUG)  # Verbose logs
+
+    # Create console handler and set level to debug
+    ch = logging.StreamHandler()
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+        
     # Create the docstring service
-    docstring_service = DocstringService(args)
+    docstring_service = DocstringService(args, logger)
 
     # Process each file with the document_file function
     for decorated_filename in args.filenames:

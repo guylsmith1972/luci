@@ -64,4 +64,12 @@ class Foo:
     
     class Bar:
         def __init__(self):
+            """
+            The constructor method for the class instance. This method is automatically called when an object of this class is created.
+            
+            This method prints a message to indicate that the object has been initialized successfully.
+            
+            Parameters:
+                self (object): The current instance of this class.
+            """
             print('Hello, world!')
