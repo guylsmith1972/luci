@@ -6,30 +6,46 @@ class OllamaService:
     _instance = None  # Singleton instance placeholder
 
     def __new__(cls):
-        """Creates a new instance of the OllamaService class.
-        This method uses Python's built-in `__new__` method to create a new instance
-        of the class. It first checks if an instance already exists; if not, it
-        creates a new one and initializes its attributes. The `ollama_process`
-        attribute is set to None initially.
+        """
+        Creates a new instance of an OllamaService class.
+        This method ensures that only one instance of the service is created,
+        and all subsequent requests to create a new instance will get the same
+        previously created instance.
+
         Returns:
-        OllamaService: A new instance of the OllamaService class."""
+            The single instance of the OllamaService class.
+        """
         if cls._instance is None:
             cls._instance = super(OllamaService, cls).__new__(cls)
             cls.ollama_process = None  # Process placeholder
         return cls._instance
 
     def query(self, prompt):
-        """ Query the LLM process with a given prompt, starting the process if not already started.
-        
+        """
+        Queries the LLaMA model with a given prompt.
+        This function sends a POST request to the LLaMA API with the provided prompt and
+        returns the response from the API. If the API is not available, it will first
+        start
+        the process. The function handles exceptions and returns an error message if the
+        request fails.
+
         Parameters:
-        self (object): The instance of the class to which this method belongs.
-        prompt (str): The prompt that will be used to query the LLM process.
-        
+        self (object): This object represents the current state of the query process.
+        prompt (str): The input prompt to be queried by the LLaMA model.
+
         Returns:
-        dict: A dictionary containing the response from the LLM process. If an error occurs, a dictionary with an 'error' key is returned instead.
-        
-        Raises:
-        None: This function does not raise any exceptions. It returns a dictionary in case of error."""
+        A JSON response from the LLaMA API, which includes the generated text or an
+        error message. If the API request fails, it returns an error message with a
+        description
+        of the exception.
+
+        Example:
+        >>> query("What is AI?", self) # This will query the LLaMA model with the given
+        prompt.
+        Note: The function does not handle cases where the response from the API is None
+        or an empty string. It is up to the caller to check for these conditions and
+        decide how to handle them.
+        """
         if self.ollama_process is None:
             self.start()
 
@@ -44,29 +60,36 @@ class OllamaService:
             return {'error': str(e)}
 
     def start(self):
-        """Starts the Ollama process if it is not already running.
-        If the Ollama process is not currently running, this method will
-        create a new process to run the 'ollama serve' command. If the process
-        is already running, no action is taken. This method can be used to
-        ensure that the Ollama server is always available when needed.
-        
+        """
+        Starts the Ollama server process.
+
+        This function initializes the Ollama server by spawning a new process using the
+        'ollama serve' command.
+
+        Parameters:
+        self (object): The instance of the class this method belongs to.
+
         Returns:
-        None: The method does not return any value."""
+        None: This function does not return any value. It simply starts the Ollama
+        server process.
+        """
         if self.ollama_process is None:
             self.ollama_process = subprocess.Popen(['ollama', 'serve'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     def stop(self):
-        """Stop the Ollama process if it is running.
-         
-        Stops the Ollama process, terminating its execution if it is currently running.
-        If the process is already stopped or has finished executing, this method does nothing.
+        """
+        Stops the Ollama process associated with this instance.
+        This method terminates and waits for the Ollama process to complete, ensuring
+        that any system resources it held are released.
         Raises:
-            None: This function does not raise any exceptions.
+        None: This method does not raise any exceptions.
         Returns:
-            None: The function does not return any value. It simply stops the Ollama process, if it exists.
-        Example:
-            >>> stop()
-            # Stop the Ollama process if it is running.
+        None: The method does not return any value. It modifies the state of this
+        instance instead.
+        Note:
+        It is assumed that the Ollama process was started using a method like start() or
+        run(), and that it is associated with this instance through an attribute like
+        ollama_process.
         """
         if self.ollama_process:
             self.ollama_process.terminate()

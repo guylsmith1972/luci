@@ -3,14 +3,21 @@ from tokenize import Special
 
 def generate_docstring_query(code, example_function, example_docstring):
     """
-    This function generates a docstring for another function. It takes in some code, an example function name, and an example docstring as parameters.
+    This function generates a docstring query for the given code, example function,
+    and example docstring.
+    The generated query is designed to test the update_docstring function by
+    providing a code snippet that requires updating its own docstring.
+
     Parameters:
-    code (str): The source code of the original function that needs to be documented.
-    example_function (str): The name of the example function whose docstring is provided.
-    example_docstring (str): The content of the example docstring that should be used as a template.
-    
+    code (str): The Python code that will be updated with the new docstring.
+    example_function (str): The name of the function whose existing docstring should
+    be replaced with the provided example docstring.
+    example_docstring (str): The new docstring content that will replace the
+    existing docstring of the specified function.
+
     Returns:
-    query (str): The generated query string with the instructions and the provided code, function name, and docstring."""
+    query (str): A string representing the generated docstring query.
+    """
     instructions = 'Write a docstring for the following function. Do not explain your work. Use """ as the docstring delimter. Respond with only the text of the docstring.\n\n'
     query = instructions
     query += example_function
@@ -24,16 +31,22 @@ def generate_docstring_query(code, example_function, example_docstring):
 
 def generate_validation_query(code, current_docstring, example_docstring):
     """
-    Generate a validation query based on a given function's code and two sample docstrings. This query helps to determine if the actual function's docstring meets certain criteria.
-    The query presents an example of well-written docstring, the target function's code, and then asks the user to check whether the actual function's docstring accurately reflects its code and follows the same pattern as the example.
-    
+    Checks whether a given function's docstring meets certain criteria.
+    This function generates a validation query based on the provided code, current
+    docstring, and example docstring.
+    The query is designed to test if the docstring accurately reflects the code in
+    the function and follows a specific pattern.
+
     Parameters:
-    code (str): The source code of the target function.
-    current_docstring (str): The actual docstring of the target function.
-    example_docstring (str): A sample well-written docstring for a Python function.
-    
+    code (str): The Python code that the docstring should be validated against.
+    current_docstring (str): The existing docstring of the function being validated.
+    example_docstring (str): A well-written example docstring that the current
+    docstring should match.
+
     Returns:
-    query (str): A text-based query that can be used to validate whether the actual function's docstring meets certain criteria."""
+    query (str): The validation query to be executed. This query is designed to test
+    if the docstring meets the specified criteria.
+    """
     instructions = f'Check whether the docstring in the following function meets the following critera:\n\n'
     instructions += f'1. The docstring in the function must accurately reflect the code in the function.\n'
     instructions += f'2. The docstring in the function should follow the pattern shown in the example docstring.\n'
@@ -58,22 +71,24 @@ def generate_validation_query(code, current_docstring, example_docstring):
 
 def generate_docstring(ollama, function_path, function_name, function_body, current_docstring, options, special_instructions=None):
     """
-    Generates a docstring for a given Python function based on an AI model's query response.
-    
-    This function uses the provided OLLAMA API client to query its natural language processing capabilities and generates a docstring based on the input parameters. The generated docstring is then validated against the original function's body and options. If the validation passes, the function returns the generated docstring; otherwise, it attempts to generate a new one up to the specified number of times before returning None.
-    
+    Generates a docstring for a Python function.
+
     Parameters:
-    ollama (OLLAMA API client): The OLLAMA API client instance used for querying.
-    function_name (str): The name of the function for which the docstring is being generated.
-    function_body (str): The source code body of the function, excluding its header and docstring.
-    options (dict): A dictionary containing options for generating the docstring, such as example_function and example_docstring.
-    
+    ollama (object): An object that generates the initial query.
+    function_path (str): The path of the function.
+    function_name (str): The name of the function.
+    function_body (str): The body of the function.
+    current_docstring (str): The current docstring for the function.
+    options (dict): A dictionary containing options such as example_function and
+    example_docstring.
+    special_instructions (str): Special instructions to be included in the query.
+
     Returns:
-    str: The generated docstring if it passes validation; otherwise, None.
+    str: The generated docstring. If no suitable docstring is found, returns None.
+
     Raises:
-    None
-    Note:
-    This function is highly dependent on the OLLAMA API's capabilities and may not work well with all types of functions or inputs. It's recommended to test this function thoroughly before using it in production code."""
+    None: This function does not raise any exceptions.
+    """
     query = generate_docstring_query(function_body, options.example_function, options.example_docstring)
     if special_instructions is not None:
         query += '\n\nSpecial Instructions:\n'
@@ -87,20 +102,25 @@ def generate_docstring(ollama, function_path, function_name, function_body, curr
 
 
 def validate_docstring(ollama, function_name, function_body, docstring, options):
-    """Validates the correctness of a given docstring against an AI-based language model.
-    This function takes in a docstring and compares it to the expected output from an AI-based
-    language model. If the docstring is correct, returns True along with any additional result;
-    otherwise, returns False along with the error report.
-    
+    """
+    Validates the given docstring against a specified ollama query and options.
+
     Parameters:
-    ollama (Object): The AI-based language model used for validation.
-    function_name (str): The name of the function whose docstring is being validated.
-    function_body (str): The source code of the function itself.
-    docstring (str): The actual docstring to be validated.
-    options (Object): A dictionary containing various options, including example_docstring and attempts.
-    
+    ollama (obj): The OLLAMA object used for querying.
+    function_name (str): The name of the function whose docstring is being
+    validated.
+    function_body (str): The source code of the function, not including its
+    docstring.
+    docstring (str): The docstring to be validated.
+    options (dict): A dictionary containing options for validation.
+
     Returns:
-    Tuple[bool, str]: Returns True if the docstring is correct, False otherwise along with an error report."""
+    tuple: A tuple containing a boolean indicating whether the validation was
+    successful,
+           and a report string describing the result of the validation process.
+           If the validation failed, the report will contain information about what
+    went wrong.
+    """
     report = None
     if not docstring.startswith('"""') or not docstring.endswith('"""') or '"""' in docstring[3:-3]:
         report = f'Failed simple string test (incorrect quoting): {docstring}'

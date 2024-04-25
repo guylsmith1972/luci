@@ -10,9 +10,41 @@ class DocstringService:
     class DocstringUpdater(cst.CSTTransformer):
         def __init__(self, docstring_service, default_indent, functions_of_interest):
             """
-            Initializes the object by setting up various attributes and references.
-            Sets up logging, default indentation, and other parameters. This method is
-            called when an instance of this class is created.
+            Initializes an instance of the class.
+
+            Parameters:
+            self (object): The instance itself.
+            docstring_service (object): A service that provides necessary tools for working
+            with Python docstrings.
+            default_indent (int): The default indentation level to use when generating
+            docstrings.
+            functions_of_interest (list or tuple): A list of functions whose docstrings will
+            be analyzed and generated.
+
+            Attributes:
+            class_level (int): The current level of nesting within a class definition.
+            function_level (int): The current level of nesting within a function definition.
+            fully_qualified_function_name (list): A list containing the fully qualified name
+            of the function being processed.
+            default_indent (int): The default indentation level used when generating
+            docstrings.
+            docstring_service (object): The service providing tools for working with Python
+            docstrings.
+            options (dict): Options passed to the docstring generation process.
+            reports (list): A list of reports generated during the docstring analysis and
+            generation process.
+            functions_of_interest (list or tuple): A list of functions whose docstrings will
+            be analyzed and generated.
+            logger (logging.Logger): The logger used for logging messages during the
+            docstring processing process.
+            leading_whitespace (list): A list containing leading whitespace characters in
+            the input code.
+            modified (bool): Indicates whether any modifications were made to the input
+            code.
+
+            Note: This is a constructor method, which is called when an instance of this
+            class is created. It initializes the instance's attributes with the provided
+            values and sets up necessary tools for processing Python docstrings.
             """
             self.class_level = 0
             self.function_level = 0
@@ -28,18 +60,24 @@ class DocstringService:
 
         def convert_functiondef_to_string(self, function_def, remove_docstring=False):
             """
-            Convert a given `FunctionDef` node to a string, optionally removing the
+            Converts a function definition (FunctionDef) to its string representation.
+            The conversion process can remove the docstring if `remove_docstring` is set to
+            True.
+            This function is intended for use with the `cst` module, which provides abstract
+            syntax trees (ASTs) of Python code.
+
+            Parameters:
+            self: The instance or class using this method. This parameter is typically not
+            used in this method.
+            function_def: A FunctionDef object representing a Python function definition.
+            remove_docstring (bool): If True, removes the docstring from the function
+            definition.
+
+            Returns:
+            str: The string representation of the function definition, possibly without its
             docstring.
-            This function takes in a `FunctionDef` object and an optional `remove_docstring`
-            flag.
-            If `remove_docstring` is set to True, it will remove the first line of the
-            function's body
-            if it matches the format of a Python docstring (i.e., a string literal at the
-            start
-            of the function). The resulting code string will not include this docstring. If
-            `remove_docstring` is False or omitted, the original docstring will be
-            preserved.
-            This function returns the converted code as a string.
+            Raises:
+            ValueError: If an error occurs during the conversion process.
             """
             if remove_docstring:
                 # Traverse the FunctionDef body to find and remove the docstring
@@ -58,17 +96,12 @@ class DocstringService:
 
         def add_leading_whitespace(self, node):
             """
-            Adds the leading whitespace of a node to a list.
-
-            This function takes a CST (Concrete Syntax Tree) node and extracts its leading
-            whitespace. It then appends this whitespace to the `leading_whitespace`
-            attribute
-            of the current object, which is presumably used to keep track of the leading
-            whitespace found in all nodes visited so far.
-
-            Parameters:
-            node: The CST node whose leading whitespace needs to be extracted.
-            self: The object that will receive the extracted leading whitespace.
+            Adds the leading whitespace from a given AST node to this object's list of
+            leading whitespaces.
+            This function takes an Abstract Syntax Tree (AST) node as input and extracts the
+            leading whitespace(s) from it. The extracted leading whitespace is then added to
+            this object's list of leading whitespaces, which can be useful in certain
+            context where leading whitespaces need to be preserved or manipulated.
             """
             # This is outrageously ineffient, but I haven't found a better way (yet)
             code = cst.Module([])
@@ -80,47 +113,55 @@ class DocstringService:
 
         def get_leading_whitespace(self):
             """
-            Returns the leading whitespace from this TextBuffer object.
-            This is the amount of whitespace that comes before any content in this buffer.
+            Returns the leading whitespace characters from this object's internal state.
+
+            This method provides a read-only access to the leading whitespace characters
+            stored in this object. The returned string contains all leading whitespaces
+            accumulated by this object.
             """
             return ''.join(self.leading_whitespace)
         
         def remove_leading_whitespace(self):
             """
-            Removes the last leading whitespace character from the internal stack.
-            This method is part of a mechanism to keep track of and manage leading
-            whitespaces within some context, possibly for formatting or parsing purposes.
-            The removed whitespace is assumed to be stored in an internal data structure
-            accessible through self.leading_whitespace.
+            Removes the leading whitespace from the stack.
+
+            This method is used to remove the leading whitespace from the stack,
+            which helps in processing the file correctly.
+            It does not return any value. It modifies the internal state of the class.
             """
             self.leading_whitespace.pop()
         
         def get_fully_qualified_function_name(self):
             """
-            Returns the fully qualified name of a function.
-            This method returns the fully qualified name of the function,
-            including its module and class names if it is defined within a class.
-            The returned string is in dot notation, e.g., "module.Class.function".
+            Returns the fully qualified name of a function, which is its module path and
+            name separated by dots.
+
+            This method returns the fully qualified name of the function, which is useful
+            for logging or debugging purposes.
+
+            Example:
+            >>> get_fully_qualified_function_name()
+            # This will return the fully qualified name of the function.
             """
             return '.'.join(self.fully_qualified_function_name)
 
         def visit_ClassDef(self, node):
             """
-            Visit a ClassDef node.
+            Visits a ClassDef node in the Abstract Syntax Tree (AST) and collects relevant
+            information about the class.
 
-            This method is called when the parser encounters a class definition.
-            It increments the current class level, appends the class name to
-            the fully qualified function name stack and then visits any nested
-            function definitions. This method also adds leading whitespace based on
-            the current indentation level and logs a message indicating that the
-            class is being examined.
+            This method is part of a recursive descent parser that walks through an AST
+            representation of a Python source code file. It handles ClassDef nodes by
+            incrementing the class level, appending the class name to the fully qualified
+            function name, and adding leading whitespace for nested classes. The method also
+            logs a message indicating which class it is currently examining.
 
             Parameters:
-            self (object): The object instance.
+            node (ast.ClassDef): The node representing the class definition in the AST.
+            self: An object with attributes that are modified by this method.
 
-            node (ast.ClassDef): The node representing the class definition.
             Returns:
-            None: This method does not return any value.
+            None
             """
             self.class_level += 1
             self.fully_qualified_function_name.append(node.name.value)
@@ -129,19 +170,11 @@ class DocstringService:
 
         def leave_ClassDef(self, original_node, updated_node):
             """
-            Replaces a ClassDef node with its subclass.
-            This method is called during the traversal of an AST tree to replace a ClassDef
-            node with its subclass.
-            It decreases the class level, removes the fully qualified function name from the
-            stack, and removes leading whitespace.
-
-            Parameters:
-            self: The current state of the visitor
-            original_node (ast.ClassDef): The original ClassDef node
-            updated_node: The updated ClassDef node
-
-            Returns:
-            ast.ClassDef: The updated ClassDef node
+            Updates the node representing a class definition and its contents.
+            This method is used to transform AST nodes during the process of updating
+            docstrings in Python source code.
+            It decrements the class level, removes the fully qualified function name from
+            the stack, removes leading whitespace, and returns the updated node.
             """
             self.class_level -= 1
             self.fully_qualified_function_name.pop()
@@ -150,17 +183,13 @@ class DocstringService:
 
         def visit_FunctionDef(self, node):
             """
-            Visit a FunctionDef AST node.
+            Visits a FunctionDef AST node in the abstract syntax tree (AST) and processes
+            its attributes.
+            This method is called during an AST traversal, allowing the visitor to inspect
+            or modify the nodes being visited.
 
-            This method is called when the AST visitor encounters a FunctionDef node.
-            It updates the state of the visitor by incrementing the current function level,
-            appending the function name to the fully qualified function name, and
-            adding leading whitespace for this function. It also logs an informational
-            message indicating that it is examining the given function.
-
-            This method is part of an AST visitor class, and its primary purpose is
-            to collect information about functions as they are visited in the AST.
-            It is designed to be used with the astor library for parsing Python code.
+            Parameters:
+            node (ast.FunctionDef): The current FunctionDef node being visited in the AST.
             """
             self.function_level += 1
             self.fully_qualified_function_name.append(node.name.value)
@@ -169,21 +198,23 @@ class DocstringService:
 
         def format_docstring(self, docstring):
             """
-            Formats a docstring for display.
-
-            This function takes in a docstring and formats it to be displayed nicely.
-            It preserves the original formatting of the docstring, but adds some
-            leading whitespace to make it look nicer when displayed with other
-            docstrings. The formatted docstring is returned as a string, ready for
-            display.
+            Formats a given docstring to conform to a specific width and indentation.
+            The function first calculates the total width based on the leading whitespace
+            and a fixed value. It then splits the docstring into lines, wraps each line
+            accordingly using the calculated width and initial indentation, and joins
+            the wrapped lines back together. The resulting formatted docstring is
+            returned.
 
             Parameters:
-            self (object): This function is called from an object's method,
-            so self needs to be included in the parameters.
-            docstring (str): The docstring that should be formatted.
+            self: The instance of the class that this method belongs to.
+            docstring (str): The original docstring to be formatted.
 
             Returns:
-            str: The formatted docstring, ready for display.
+            str: The formatted docstring with the specified leading whitespace and width.
+
+            Note:
+            This function uses the `textwrap` module from Python's standard library
+            to perform the wrapping operation.
             """
             leading_whitespace = self.get_leading_whitespace()
             # Calculate the total width for wrapping
@@ -198,32 +229,30 @@ class DocstringService:
     
         def update_docstring(self, fully_qualified_function_name, function_name, current_docstring, updated_node, action_taken):
             """
-            Updates the docstring of a function in a Python file.
-
-            This function takes an existing node representing a function definition,
-            and either strips or updates its docstring based on user options. If
-            the update is successful, it returns the updated node and the action
-            taken (either "stripped" or "updated"). Otherwise, it does nothing and
-            returns None.
+            Updates the docstring of a given function in a Python source file.
+            This function takes into account the existence of an existing docstring and can
+            either replace it or strip it based on user options.
 
             Parameters:
+            self (object): The object containing the context for this method.
             fully_qualified_function_name (str): The fully qualified name of the function.
-            function_name (str): The name of the function.
-            current_docstring (object): The current docstring of the function.
-            updated_node (object): The updated node representing the function definition.
-            action_taken (str): A string indicating whether the docstring was stripped or
-            updated.
+            function_name (str): The name of the function to update.
+            current_docstring (str): The current docstring of the function.
+            updated_node (object): An updated ast node representing the function with the
+            new docstring.
+            action_taken (str): A string indicating whether the existing docstring was
+            stripped or replaced.
 
             Returns:
-            tuple: A tuple containing the updated node and the action taken. If no update
-            was made, it returns None for both values.
+            tuple: A tuple containing the updated node and a description of the action
+            taken.
             """
             function_code = self.convert_functiondef_to_string(updated_node)
             do_update = self.options.update
             strip_docstring = self.options.strip
             if self.options.validate:
                 self.logger.debug('Validating existing docstring')
-                validated, assessment = queries.validate_docstring(self.docstring_service.ollama, function_name, function_code, current_docstring, self.options)
+                validated, assessment = queries.validate_docstring(self.docstring_service.ollama, function_name, function_code, f'"""{current_docstring}"""', self.options)
                 if validated:
                     do_update = False
                     strip_docstring = False
@@ -253,27 +282,39 @@ class DocstringService:
         
         def create_docstring(self, fully_qualified_function_name, function_name, current_docstring, updated_node, action_taken):
             """
-            Creates a new docstring for the given function and updates the AST accordingly.
-            This method appends a new docstring to the specified function based on the
-            provided parameters.
-            The new docstring is generated using the Ollama service and formatted according
-            to the user's options.
+            Creates a new docstring for the given function based on the provided parameters.
+            This function is part of a larger process that updates the docstrings of
+            functions.
+            It takes in the fully qualified name of the function, its name within the
+            module,
+            the current docstring, and the updated node representing the function
+            definition.
+            The function then generates a new docstring using an external service (Ollama),
+            formats it according to certain rules, appends it to the function definition,
+            and returns both the updated node and the action taken.
 
             Parameters:
-            fully_qualified_function_name (str): The fully qualified name of the function
-            for which the new docstring needs to be created.
-            function_name (str): The name of the function for which the new docstring needs
-            to be created.
-            current_docstring (str): The current docstring of the function, if any.
-            updated_node (cst.FunctionDef): The updated AST node representing the function
-            with its new docstring.
-            action_taken (str): A string indicating what action was taken by this method
-            (either creating a new docstring or leaving it as-is).
+            self (object): The instance of the class that this method is part of.
+            fully_qualified_function_name (str): The full name of the function,
+            including its module and class if applicable. This parameter is used to
+            generate the new docstring using Ollama.
+            function_name (str): The name of the function within its module.
+            current_docstring (str): The current docstring of the function, which may
+            be None or an empty string.
+            updated_node (cst.FunctionDef): The node representing the updated
+            function definition.
+            action_taken (str): The action taken by this method, such as "created a new
+            docstring" or "failed to create new docstring".
 
             Returns:
-            updated_node (cst.FunctionDef): The updated AST node with the new docstring.
-            action_taken (str): A string indicating whether a new docstring was created or
-            not.
+            updated_node (cst.FunctionDef): The updated function node with its new
+            docstring appended.
+            action_taken (str): The action taken by this method.
+
+            Raises:
+            None: This method does not raise any exceptions. It may fail to create a
+            new docstring in certain circumstances, but it will still return the
+            updated node and an appropriate message indicating what happened.
             """
             if self.options.create:
                 # Append new docstring
@@ -294,23 +335,22 @@ class DocstringService:
         
         def leave_FunctionDef(self, original_node, updated_node):
             """
-            Leave the FunctionDef node, updating any relevant actions taken. This function
-            is responsible for deciding whether to process a given FunctionDef node based on
-            its nesting level and whether it's in the list of functions of interest. If the
-            function should be processed, it may create or update its docstring depending on
-            its current state. Finally, it removes leading whitespace from the updated node
-            and decrements the current nesting level before reporting any actions taken back
-            to the logger.
+            This method is part of a class that processes Python functions and their
+            docstrings.
+            It is called when a FunctionDef node is encountered during the processing of a
+            Python file.
 
-            Parameters:
-            self (object): This is a reference to the object that this method belongs to.
-            original_node (ast.FunctionDef): The original FunctionDef node being processed.
-            updated_node (ast.FunctionDef): The updated FunctionDef node after processing,
-            which may have had its docstring created or updated.
+            The method checks if the function is within the allowed depth level. If it's
+            not, or if it's not in the list of decorated functions to document, it skips
+            processing this function.
 
-            Returns:
-            updated_node (ast.FunctionDef): The updated FunctionDef node, potentially with a
-            new or updated docstring.
+            If the function is within the allowed depth and should be processed, the method
+            either creates a new docstring for the function if it doesn't have one, or
+            updates its existing docstring.
+
+            After processing the function, the method removes leading whitespace from the
+            function's body and decrements the current nesting level.
+            Finally, it logs the action taken and appends the report to the list of reports.
             """
             action_taken = "did nothing"
             function_name = updated_node.name.value
@@ -345,15 +385,18 @@ class DocstringService:
 
     def __init__(self, options, logger):
         """
-        Initialize an instance of this class.
+        Initializes a new instance of the class.
 
-        Parameters:
-        options: The options to use for this instance.
-        logger: A logger object to use for logging messages.
+         Parameters:
+        self: The instance of the class to be initialized.
+        options (dict): A dictionary containing initialization options.
+        logger (Logger): A logging object used for logging messages during the life
+        cycle of this instance.
 
-        Note:
-        This is the constructor method, called when a new instance of this class is
-        created. It sets up the necessary state variables for this instance.
+         Note:
+        This is a constructor method that sets up the necessary state and resources for
+        the class to function properly. It does not return any value, as its primary
+        purpose is to initialize the instance.
         """
         self.logger = logger
         self.ollama = OllamaService()
@@ -361,24 +404,25 @@ class DocstringService:
 
     def document_file(self, file_path, functions_of_interest):
         """
-        Updates the docstrings of a list of specified functions within a Python source
-        file.
-        This function reads a Python file, parses its source code to find the docstrings
-        of the specified functions, and then updates their existing docstrings with the
-        provided information. The updated source code is not written back to the file,
-        but instead returns the modified source code as well as any report messages
-        and modified status.
-        Parameters: file_path (str): The path to the Python source file where the
-        functions are located. functions_of_interest (list[str]): A list of function
-        names
-        whose docstrings need updating.
-        Returns: tuple[code, reports, modified]: A tuple containing the updated code,
-        a list of report messages, and a boolean indicating whether any modifications
-        were made.
-        Example: >>> document_file(self, "example.py", ["my_function1", "my_function2"])
-        # This will update the docstrings of `my_function1` and `my_function2` in
-        # `example.py` file. Note: This function does not modify the original source
-        file.
+        Updates the docstrings of a list of function names within a Python source file.
+        This method takes a file path and a list of function names as input. It parses
+        the source code,
+        updates the docstrings for the specified functions, and returns the modified
+        source code along with any error reports.
+
+        Parameters:
+        file_path (str): The path to the Python source file where the functions are
+        defined.
+        functions_of_interest (list[str]): A list of function names whose docstrings
+        need to be updated.
+
+        Returns:
+        tuple: A tuple containing the modified source code as a string, a dictionary of
+        error reports, and a boolean indicating whether any changes were made.
+
+        Note:
+        This method does not handle functions defined within classes or other scopes;
+        only top-level functions are supported.
         """
         with open(file_path, "r") as source_file:
             source_code = source_file.read()
