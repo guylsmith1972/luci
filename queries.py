@@ -1,3 +1,6 @@
+from tokenize import Special
+
+
 def generate_docstring_query(code, example_function, example_docstring):
     """
     This function generates a docstring for another function. It takes in some code, an example function name, and an example docstring as parameters.
@@ -34,8 +37,8 @@ def generate_validation_query(code, current_docstring, example_docstring):
     instructions = f'Check whether the docstring in the following function meets the following critera:\n\n'
     instructions += f'1. The docstring in the function must accurately reflect the code in the function.\n'
     instructions += f'2. The docstring in the function should follow the pattern shown in the example docstring.\n'
-    instructions += f'\nIf both point 1 and point 2 are met, reply with just the single word "correct"\n'
-    instructions += f'If either point fails, respond with "incorrect: " followed by an explanation.\n\n'
+    instructions += f'\nIf both point 1 and point 2 are met, reply with "ANSWER: correct"\n'
+    instructions += f'If either point fails, respond with "ANSWER: incorrect: " followed by an explanation.\n\n'
 
     query = f'Here is an example of a well-written docstring for a Python function:\n\n"""{example_docstring}\n"""\n\n'
     query += f'Examine the following code:\n'
@@ -45,7 +48,7 @@ def generate_validation_query(code, current_docstring, example_docstring):
     query += f'        file_content = infile.read()\n'
     query += f'    return file_content\n\n'
     query += instructions
-    query += f'incorrect: The function does not list files in a directory, it loads a file and returns the contents. It also does not adhere to the style conventions for docstrings.\n\n'
+    query += f'ANSWER: incorrect: The function does not list files in a directory, it loads a file and returns the contents. It also does not adhere to the style conventions for docstrings.\n\n'
     query += f'Examine the following code:\n'
     query += f'{code}\n\n'
     query += instructions
@@ -53,7 +56,7 @@ def generate_validation_query(code, current_docstring, example_docstring):
     return query
 
 
-def generate_docstring(ollama, function_path, function_name, function_body, current_docstring, options):
+def generate_docstring(ollama, function_path, function_name, function_body, current_docstring, options, special_instructions=None):
     """
     Generates a docstring for a given Python function based on an AI model's query response.
     
@@ -69,11 +72,13 @@ def generate_docstring(ollama, function_path, function_name, function_body, curr
     str: The generated docstring if it passes validation; otherwise, None.
     Raises:
     None
-    Example:
-    # TO DO: Example usage
     Note:
     This function is highly dependent on the OLLAMA API's capabilities and may not work well with all types of functions or inputs. It's recommended to test this function thoroughly before using it in production code."""
     query = generate_docstring_query(function_body, options.example_function, options.example_docstring)
+    if special_instructions is not None:
+        query += '\n\nSpecial Instructions:\n'
+        query += special_instructions
+        
     for i in range(options.attempts):
         docstring = ollama.query(query)
         if validate_docstring(ollama, function_name, function_body, docstring, options):
@@ -103,9 +108,14 @@ def validate_docstring(ollama, function_name, function_body, docstring, options)
         query = generate_validation_query(function_body, docstring, options.example_docstring)
         for i in range(options.attempts):
             result = ollama.query(query)
-            if result.strip().lower().startswith('correct'):
+            parts = result.lower().split('answer:')
+            if len(parts) != 2:
+                return False, result
+            parts = parts[1].split(' \t\r\n')
+            answer = parts[0].strip()
+            print(f'first thing after answer: {answer}')
+            if answer == 'correct':
                 return True, result
-            else:
-                report = result
-                    
+            report = result
+
     return False, report

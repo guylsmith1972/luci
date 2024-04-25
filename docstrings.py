@@ -25,24 +25,33 @@ class DocstringService:
             self.paths_of_interest = paths_of_interest
             self.logger = docstring_service.logger
             self.leading_whitespace = []
+            self.modified = False
 
-        def convert_functiondef_to_string(self, function_def):
+        def convert_functiondef_to_string(self, function_def, remove_docstring=False):
             """
-            Convert a CST FunctionDef node to its string representation.
-            This function takes a CST FunctionDef object and converts it into a Python string that represents the same function definition.
-            
+            Convert a CST FunctionDef node to its string representation and optionally remove its docstring.
+    
             Parameters:
-            self (object): The instance of the class this method belongs to. It's not used in this method, but it's required by the class syntax.
+            self (object): The instance of the class this method belongs to.
             function_def (cst.FunctionDef): The CST node representing a Python function definition.
-            
+            remove_docstring (bool): If True, removes the function's docstring before generating the source code.
+    
             Returns:
             str: The string representation of the given function definition.
-            
-            Example:
-            >>> convert_functiondef_to_string(my_func)
-            # This will return the string representation of 'my_func'"""
-            code = cst.Module([])
-            code.body.append(function_def)
+            """
+            if remove_docstring:
+                # Traverse the FunctionDef body to find and remove the docstring
+                body = function_def.body
+                if body and isinstance(body[0], cst.SimpleStatementLine):
+                    # Check if the first statement is an Expr with a string (docstring)
+                    first_statement = body[0]
+                    if isinstance(first_statement.body[0], cst.Expr) and isinstance(first_statement.body[0].value, cst.SimpleString):
+                        # Remove the docstring statement
+                        new_body = body.with_changes(body=body[1:])
+                        function_def = function_def.with_changes(body=new_body)
+
+            # Convert the possibly modified FunctionDef to code
+            code = cst.Module(body=[function_def])
             return code.code
 
         def add_leading_whitespace(self, node):
@@ -177,7 +186,7 @@ class DocstringService:
                     if isinstance(body_statements[0].body[0].value, cst.SimpleString):
                         body_statements[0] = cst.SimpleStatementLine([cst.Expr(cst.SimpleString(f'"""{self.pad_docstring(new_docstring)}"""'))])
                         action_taken = "updated existing docstring"
-                        self.logger.debug(f'new docstring: {new_docstring}')
+                        self.modified = True
                 updated_body = cst.IndentedBlock(body=body_statements)
                 updated_node = updated_node.with_changes(body=updated_body)
             return updated_node, action_taken
@@ -206,6 +215,7 @@ class DocstringService:
                     updated_node = updated_node.with_changes(body=updated_body)
                     self.logger.debug(f'new docstring: {new_docstring}')
                     action_taken = "created a new docstring"
+                    self.modified = True
                 else:
                     action_taken = "failed to create new docstring, leaving as-is" 
             return updated_node, action_taken
@@ -307,4 +317,4 @@ class DocstringService:
         tree = cst.parse_module(source_code)
         transformer = DocstringService.DocstringUpdater(self, tree, paths_of_interest)
         modified_tree = tree.visit(transformer)
-        return modified_tree.code, transformer.reports
+        return modified_tree.code, transformer.reports, transformer.modified
