@@ -3,16 +3,17 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>e50e2acd-8c1c-4ff7-8946-613eb63e36ed</ProjectGuid>
-    <ProjectHome>.</ProjectHome>
-    <StartupFile>Elucidator.py</StartupFile>
+    <ProjectHome>
+    </ProjectHome>
+    <StartupFile>pyluci.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
-    <Name>Elucidator</Name>
+    <Name>pyluci</Name>
     <RootNamespace>Elucidator</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>--help</CommandLineArguments>
+    <CommandLineArguments>-cpm docstrings.py ollama.py pyluci.py queries.py</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -24,7 +25,7 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Elucidator.py" />
+    <Compile Include="pyluci.py" />
     <Compile Include="docstrings.py" />
     <Compile Include="ollama.py" />
     <Compile Include="queries.py" />

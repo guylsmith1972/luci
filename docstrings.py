@@ -168,11 +168,48 @@ class DocstringService:
             return updated_node
 
     def __init__(self, options, logger):
+        """
+        Initializes an instance of this class.
+
+        Parameters:
+          self (object): The instance itself.
+          options (dict): A dictionary containing the command-line options passed to the
+        script.
+          logger (Logger): An object used for logging messages.
+
+        Note:
+        This constructor does not perform any validation or processing on the input
+        parameters. It simply assigns them to instance variables and initializes an
+        OllamaService instance.
+        """
         self.logger = logger
         self.ollama = OllamaService()
         self.options = options
 
     def document_file(self, file_path, functions_of_interest):
+        """
+        Updates the docstrings of one or more specified functions within a Python source
+        file.
+        This method reads a Python file, parses its source code to find and update the
+        docstrings of the functions listed in `functions_of_interest`, using information
+        provided by the object passed as `self`. The updated source code is then
+        returned along with any reports of modifications made and a list of modified
+        functions. If no functions are found that match those specified, an empty string
+        is returned for the code.
+
+        Parameters:
+          self: An instance of a class containing information used to update
+                docstrings.
+          file_path (str): The path to the Python source file where the functions
+                          whose docstrings need updating are located.
+          functions_of_interest (list[str]): A list of function names whose docstrings
+                                             should be updated.
+
+        Returns:
+          tuple: A tuple containing the updated code, a report of modifications made,
+                 and a list of modified functions. If no matching functions were found,
+                 an empty string is returned for the code.
+        """
         with open(file_path, "r") as source_file:
             source_code = source_file.read()
 

@@ -5,6 +5,21 @@ from ollama import OllamaService
 
 
 def get_arguments():
+    """
+    Parse command line arguments.
+
+    This function parses the command line arguments provided to the script.
+    It uses the argparse library to define a set of command-line options,
+    and then parses those options from the command line.
+
+    Parameters:
+      None: This function does not take any parameters. It only returns the parsed
+            arguments.
+
+    Returns:
+      args (argparse.Namespace): The parsed command line arguments, which can be
+            accessed as attributes on the returned object.
+    """
     # Initialize the parser
     parser = argparse.ArgumentParser(description="Create, update, or validate docstrings in Python files.")
 
@@ -14,7 +29,7 @@ def get_arguments():
                         help='Create new docstrings for functions that do not currently have one.')
     parser.add_argument('-d', '--depth', type=int, default=1, metavar='[1-100]',
                         help='Set the depth for processing. Must be an integer in the range [1..100].')
-    parser.add_argument('-l', '--log-level', type=int, default=0, choices=range(0, 3),
+    parser.add_argument('-l', '--log-level', type=int, default=1, choices=range(0, 3),
                         help='Set the log level. 0 = no logs, 1 = brief logs, 2 = verbose logs')
     parser.add_argument('-m', '--modify', action='store_true',
                         help='Modify the original files with new changes. If -p or -r is also specified, will prompt user before modifying the file.')
@@ -61,6 +76,29 @@ def get_arguments():
 
 
 def get_logger(args):
+    """
+    Creates a new logger with the specified log level. The log level is determined
+    by the `log_level` argument.
+
+    This function creates a new logger and sets its log level based on the provided
+    `log_level`. It then adds a console handler to the logger, which allows logs to
+    be printed to the console.
+
+    The log level can be one of three levels: 0 (CRITICAL), 1 (INFO), or 2 (DEBUG).
+    If `log_level` is not specified or is invalid, the default log level will be
+    used.
+
+    Parameters:
+        args (obj): The arguments object containing the log level to use for the
+    logger.
+
+    Returns:
+        logger (logging.Logger): The new logger with the specified log level.
+
+    Example:
+    > get_logger({'log_level': 1}) # This will create a logger with an INFO log
+    level
+    """
     logger = logging.getLogger(__name__)
     if args.log_level == 0:
         logger.setLevel(logging.CRITICAL)  # No logs shown
@@ -79,17 +117,72 @@ def get_logger(args):
 
 
 def list_models(args, logger):
+    """
+    Lists and prints the names of all models supported by the Ollama Service.
+
+    This function takes a set of arguments and a logger object as input, uses them
+    to retrieve a list of models from the service, and then iterates over this list
+    printing out each model name.
+
+    Parameters:
+      args (Any): The input arguments for the OllamaService.
+      logger (Logger): A logging object used to log any errors or messages.
+
+    Returns:
+      None: The function does not return any values. It simply prints out the names
+    of the models.
+    """
     models = OllamaService.get_models(args)
     for model in models:
         print(f"{model['name']}")
-    
 
 def install_model(args, logger):
+    """
+    Installs a machine learning model using provided arguments and logging
+    information.
+    This function is a wrapper around the actual installation logic implemented in
+    OllamaService. It provides basic logging and prints out the status of the
+    installation process.
+
+    Parameters:
+      args (dict): A dictionary containing the necessary install model
+                  parameters.
+      logger (logger object): The logger object used to log any relevant information
+                              during the installation process.
+
+    Raises:
+      Exception: If any error occurs during the installation process.
+    Returns:
+      None: This function does not return any value. It prints out the status of the
+           installation process and logs any relevant information.
+    """
     print(f'Install model is {args.install_model}')
     OllamaService.install_model(args, logger)
 
 
 def main():
+    """
+    This is the main entry point of the application. It handles command-line
+    arguments and orchestrates the execution of various functions to update
+    docstrings in Python files.
+
+    The function accepts a set of options, including file names, logging levels, and
+    actions to perform on the files. The main logic involves:
+
+    - Processing each file with the document_file function
+    - Printing reports if requested
+    - Asking for user confirmation before saving changes (if preview or report
+    option is enabled)
+    - Saving the modified file (if confirmed) or reporting that no changes were made
+
+    This function does not handle errors and exceptions, relying on other functions
+    to do so. It should be called with valid command-line arguments.
+
+    Parameters:
+      None: This function does not take any explicit parameters.
+      Returns:
+      None: The function does not return any value.
+    """
     args = get_arguments()
     logger = get_logger(args)
     
