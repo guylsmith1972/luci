@@ -5,7 +5,6 @@ def generate_docstring_query(code, example_function, example_docstring):
     """
     This function generates a docstring query for the given code, example function
     and example docstring.
-    The query is used to test the docstring generation functionality.
 
     Parameters:
       code (str): The source code of the Python file where the function's docstring
@@ -73,7 +72,7 @@ def generate_validation_query(code, current_docstring, example_docstring):
 
 def generate_docstring(ollama, function_path, function_name, function_body, current_docstring, options, logger, special_instructions=None):
     """
-    Generates a docstring for a given function using the OpenLumen AI (Ollama) and
+    Generates a docstring for a given function using Ollama and
     updates it accordingly.
 
     This function takes in several parameters: the Ollama instance, the path to the
@@ -86,10 +85,10 @@ def generate_docstring(ollama, function_path, function_name, function_body, curr
     a specified number of attempts, None is returned.
 
     This function can be used to automatically generate high-quality docstrings for
-    Python functions using OpenLumen AI.
+    Python functions using Ollama.
 
     Parameters:
-      ollama (Ollama instance): The OpenLumen AI instance used to generate the
+      ollama (Ollama instance): The Ollama instance used to generate the
     docstring.
       function_path (str): The path to the function in the source code.
       function_name (str): The name of the function for which the docstring is being
