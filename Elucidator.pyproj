@@ -12,7 +12,7 @@
     <Name>Elucidator</Name>
     <RootNamespace>Elucidator</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>-vr -l 2 -d 5 docstrings.py Elucidator.py ollama.py queries.py</CommandLineArguments>
+    <CommandLineArguments>--help</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">

@@ -1,22 +1,19 @@
-from tokenize import Special
-
-
 def generate_docstring_query(code, example_function, example_docstring):
     """
-    This function generates a docstring query for the given code, example function,
+    This function generates a docstring query for the given code, example function
     and example docstring.
-    The generated query is designed to test the update_docstring function by
-    providing a code snippet that requires updating its own docstring.
+    The query is used to test the docstring generation functionality.
 
     Parameters:
-    code (str): The Python code that will be updated with the new docstring.
-    example_function (str): The name of the function whose existing docstring should
-    be replaced with the provided example docstring.
-    example_docstring (str): The new docstring content that will replace the
+      code (str): The source code of the Python file where the function's docstring
+    needs to be updated.
+      example_function (str): The name of the function whose docstring needs
+    updating.
+      example_docstring (str): The new docstring content that will replace the
     existing docstring of the specified function.
 
     Returns:
-    query (str): A string representing the generated docstring query.
+      str: The generated docstring query.
     """
     instructions = 'Write a docstring for the following function. Do not explain your work. Use """ as the docstring delimter. Respond with only the text of the docstring.\n\n'
     query = instructions
@@ -31,21 +28,23 @@ def generate_docstring_query(code, example_function, example_docstring):
 
 def generate_validation_query(code, current_docstring, example_docstring):
     """
-    Checks whether a given function's docstring meets certain criteria.
-    This function generates a validation query based on the provided code, current
-    docstring, and example docstring.
-    The query is designed to test if the docstring accurately reflects the code in
-    the function and follows a specific pattern.
+    This function generates a validation query for checking whether the docstring of
+    a given Python function meets certain criteria.
+    The function takes three parameters: the code of the function, its current
+    docstring, and an example of a well-written docstring.
+    It returns a query that contains the function's code, instructions for
+    evaluation, and an example of a correct docstring.
 
     Parameters:
-    code (str): The Python code that the docstring should be validated against.
-    current_docstring (str): The existing docstring of the function being validated.
-    example_docstring (str): A well-written example docstring that the current
-    docstring should match.
+      code (str): The source code of the Python function whose docstring needs to be
+    validated.
+      current_docstring (str): The existing docstring of the function being
+    evaluated.
+      example_docstring (str): A well-written docstring that serves as an example
+    for comparison.
 
     Returns:
-    query (str): The validation query to be executed. This query is designed to test
-    if the docstring meets the specified criteria.
+      query (str): A string containing the validation query.
     """
     instructions = f'Check whether the docstring in the following function meets the following critera:\n\n'
     instructions += f'1. The docstring in the function must accurately reflect the code in the function.\n'
@@ -69,25 +68,40 @@ def generate_validation_query(code, current_docstring, example_docstring):
     return query
 
 
-def generate_docstring(ollama, function_path, function_name, function_body, current_docstring, options, special_instructions=None):
+def generate_docstring(ollama, function_path, function_name, function_body, current_docstring, options, logger, special_instructions=None):
     """
-    Generates a docstring for a Python function.
+    Generates a docstring for a given function using the OpenLumen AI (Ollama) and
+    updates it accordingly.
+
+    This function takes in several parameters: the Ollama instance, the path to the
+    function, the name of the function, the body of the function, the current
+    docstring, options for the query, and special instructions. It uses these inputs
+    to generate a query that is then passed to Ollama to generate a new docstring.
+
+    The generated docstring is validated against certain criteria before it is
+    returned. If the generated docstring does not meet the validation criteria after
+    a specified number of attempts, None is returned.
+
+    This function can be used to automatically generate high-quality docstrings for
+    Python functions using OpenLumen AI.
 
     Parameters:
-    ollama (object): An object that generates the initial query.
-    function_path (str): The path of the function.
-    function_name (str): The name of the function.
-    function_body (str): The body of the function.
-    current_docstring (str): The current docstring for the function.
-    options (dict): A dictionary containing options such as example_function and
-    example_docstring.
-    special_instructions (str): Special instructions to be included in the query.
+      ollama (Ollama instance): The OpenLumen AI instance used to generate the
+    docstring.
+      function_path (str): The path to the function in the source code.
+      function_name (str): The name of the function for which the docstring is being
+    generated.
+      function_body (str): The body of the function, excluding any docstrings or
+    comments.
+      current_docstring (str): The current docstring of the function, if any.
+      options (dict): A dictionary containing options for the query, such as example
+    functions and docstrings.
+      special_instructions (str): Special instructions that should be included in
+    the generated docstring.
 
     Returns:
-    str: The generated docstring. If no suitable docstring is found, returns None.
-
-    Raises:
-    None: This function does not raise any exceptions.
+      str: The generated docstring for the given function. If no valid docstring
+    could be generated after a specified number of attempts, None is returned.
     """
     query = generate_docstring_query(function_body, options.example_function, options.example_docstring)
     if special_instructions is not None:
@@ -95,39 +109,46 @@ def generate_docstring(ollama, function_path, function_name, function_body, curr
         query += special_instructions
         
     for i in range(options.attempts):
-        docstring = ollama.query(query)
-        if validate_docstring(ollama, function_name, function_body, docstring, options):
+        docstring = ollama.query(query, options, logger)
+        if validate_docstring(ollama, function_name, function_body, docstring, options, logger):
             return docstring.strip('"').strip("'")
     return None
 
 
-def validate_docstring(ollama, function_name, function_body, docstring, options):
+def validate_docstring(ollama, function_name, function_body, docstring, options, logger):
     """
-    Validates the given docstring against a specified ollama query and options.
+    Validates the provided docstring for a given function.
+    Checks if the docstring is syntactically correct by attempting to execute it,
+    and then performs a series of checks on its contents. The validation process
+    can be customized with options.
 
     Parameters:
-    ollama (obj): The OLLAMA object used for querying.
-    function_name (str): The name of the function whose docstring is being
+      ollama (object): An OLLAMA instance used for querying.
+      function_name (str): The name of the function whose docstring is being
     validated.
-    function_body (str): The source code of the function, not including its
-    docstring.
-    docstring (str): The docstring to be validated.
-    options (dict): A dictionary containing options for validation.
+      function_body (str): The source code of the function.
+      docstring (str): The docstring content to be validated.
+      options (dict): A dictionary containing customization options.
 
     Returns:
-    tuple: A tuple containing a boolean indicating whether the validation was
-    successful,
-           and a report string describing the result of the validation process.
-           If the validation failed, the report will contain information about what
-    went wrong.
+      tuple: A tuple containing a boolean indicating whether the docstring is valid
+             and a report message detailing the validation result.
     """
     report = None
+
+    try:
+        # Attempt to parse the dummy function code to see if the docstring is syntactically correct
+        dummy_code = f'def dummy_function():\n    {docstring}\n    pass\n\ndummy_function()\n'
+        exec(dummy_code, {})
+    except SyntaxError:
+        return False, 'Docstring syntax not valid'
+
     if not docstring.startswith('"""') or not docstring.endswith('"""') or '"""' in docstring[3:-3]:
         report = f'Failed simple string test (incorrect quoting): {docstring}'
     else:
         query = generate_validation_query(function_body, docstring, options.example_docstring)
         for i in range(options.attempts):
-            result = ollama.query(query)
+            result = ollama.query(query, options, logger)
             parts = result.lower().split('answer:')
             if len(parts) != 2:
                 return False, result

@@ -13,3 +13,4 @@ def update_docstring(filename, function_name, new_docstring):
     # Write back the modified code
     with open(filename, "w") as file:
         file.write(astor.to_source(tree))
+    

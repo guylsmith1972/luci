@@ -1,4 +1,4 @@
-import os
+import json
 import requests
 import subprocess
 
@@ -6,91 +6,91 @@ class OllamaService:
     _instance = None  # Singleton instance placeholder
 
     def __new__(cls):
-        """
-        Creates a new instance of an OllamaService class.
-        This method ensures that only one instance of the service is created,
-        and all subsequent requests to create a new instance will get the same
-        previously created instance.
-
-        Returns:
-            The single instance of the OllamaService class.
-        """
         if cls._instance is None:
             cls._instance = super(OllamaService, cls).__new__(cls)
             cls.ollama_process = None  # Process placeholder
         return cls._instance
+    
+    @staticmethod
+    def get_models(options):
+        url = f"http://{options.host}:{options.port}/api/tags"
+        
+        try:
+            response = requests.get(url)
+            response.raise_for_status()  # This will raise an exception for HTTP errors
+            data = response.json()
+            models = data.get("models", [])
+            return models
+        except requests.RequestException as e:
+            print(f"An error occurred: {e}")
+            return None
 
-    def query(self, prompt):
-        """
-        Queries the LLaMA model with a given prompt.
-        This function sends a POST request to the LLaMA API with the provided prompt and
-        returns the response from the API. If the API is not available, it will first
-        start
-        the process. The function handles exceptions and returns an error message if the
-        request fails.
+    @staticmethod
+    def is_model_installed(options):
+        models = OllamaService.get_models(options)    
+        
+        target_parts = options.model.split(':')
+        for model in models:
+            model_parts = model.get("name").split(':')
+            matches = True
+            for i in range(len(target_parts)):
+                if target_parts[i] != model_parts[i]:
+                    matches = False
+                    break
+            if matches:
+                return True
+                
+        return False
+    
+    @staticmethod
+    def install_model(options, logger):
+        url = f"http://{options.host}:{options.port}/api/pull"
+        headers = {'Content-Type': 'application/json'}
+        payload = {
+            "name": options.install_model,
+            "stream": False
+        }
 
-        Parameters:
-        self (object): This object represents the current state of the query process.
-        prompt (str): The input prompt to be queried by the LLaMA model.
+        try:
+            logger.info(f'Installing Ollama model {options.install_model}')
+            response = requests.post(url, headers=headers, data=json.dumps(payload))
+            response.raise_for_status()  # Raises stored HTTPError, if one occurred.
+            response_text = response.text
+            response_json = json.loads(response_text)
+            if response_json['status'] == 'success':
+                return True  # Server indicates success.
+            else:
+                logger.critical(f'Ollama replied with failure message:\n\n{response_text}')
+                return False  # Server response is not success, handle accordingly.
+        except requests.RequestException as e:
+            logger.critical(f'Failed to install model {options.model}: {str(e)}')
+            return {'error': str(e)}  # Handle exceptions and return an error message.
 
-        Returns:
-        A JSON response from the LLaMA API, which includes the generated text or an
-        error message. If the API request fails, it returns an error message with a
-        description
-        of the exception.
 
-        Example:
-        >>> query("What is AI?", self) # This will query the LLaMA model with the given
-        prompt.
-        Note: The function does not handle cases where the response from the API is None
-        or an empty string. It is up to the caller to check for these conditions and
-        decide how to handle them.
-        """
+    def query(self, prompt, options, logger):
         if self.ollama_process is None:
             self.start()
+            
+        if not OllamaService.is_model_installed(options):
+            logger.critical(f'Model "{options.model}" is not installed. Rerun script with --install-model {options.model}')
+            exit(0)
 
-        url = 'http://localhost:11434/api/generate'
+        url = f'http://{options.host}:{options.port}/api/generate'
         headers = {'Content-Type': 'application/json'}
-        data = {'model': 'llama3', 'prompt': prompt, 'stream': False}
+        data = {'model': options.model, 'prompt': prompt, 'stream': False}
         try:
             response = requests.post(url, headers=headers, json=data)
             response.raise_for_status()
+            # Return just the text response from Ollama
             return response.json()['response']
         except requests.RequestException as e:
             return {'error': str(e)}
 
     def start(self):
-        """
-        Starts the Ollama server process.
-
-        This function initializes the Ollama server by spawning a new process using the
-        'ollama serve' command.
-
-        Parameters:
-        self (object): The instance of the class this method belongs to.
-
-        Returns:
-        None: This function does not return any value. It simply starts the Ollama
-        server process.
-        """
         if self.ollama_process is None:
             self.ollama_process = subprocess.Popen(['ollama', 'serve'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     def stop(self):
-        """
-        Stops the Ollama process associated with this instance.
-        This method terminates and waits for the Ollama process to complete, ensuring
-        that any system resources it held are released.
-        Raises:
-        None: This method does not raise any exceptions.
-        Returns:
-        None: The method does not return any value. It modifies the state of this
-        instance instead.
-        Note:
-        It is assumed that the Ollama process was started using a method like start() or
-        run(), and that it is associated with this instance through an attribute like
-        ollama_process.
-        """
         if self.ollama_process:
             self.ollama_process.terminate()
             self.ollama_process.wait()
