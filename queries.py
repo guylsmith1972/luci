@@ -1,3 +1,6 @@
+import re
+
+
 def generate_docstring_query(code, example_function, example_docstring):
     """
     This function generates a docstring query for the given code, example function
@@ -149,12 +152,16 @@ def validate_docstring(ollama, function_name, function_body, docstring, options,
         query = generate_validation_query(function_body, docstring, options.example_docstring)
         for i in range(options.attempts):
             result = ollama.query(query, options, logger)
-            parts = result.lower().split('answer:')
-            if len(parts) != 2:
-                return False, result
-            parts = parts[1].split(' \t\r\n')
-            answer = parts[0].strip()
-            if answer == 'correct':
+            # Pattern to find 'ANSWER:' followed by any amount of whitespace and then a word
+            pattern = r'ANSWER:\s*(\w+)'
+            # Use re.findall to extract all matching words
+            answers = re.findall(pattern, result)
+            valid = len(answers) > 0
+            for answer in answers:
+                if answer.lower() != 'correct':
+                    valid = False
+                    break
+            if valid:
                 return True, result
             report = result
 

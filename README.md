@@ -96,10 +96,10 @@ Creation and updates can occur at the same time:
 python pyluci.py -cupm sample.py
 ```
 
-To produce a report on the correctness of existing docstrings, use the -v option without using -c or -u:
+To produce a report on the correctness of existing docstrings, use the -r and -v options without using -c or -u:
 
 ```
-python pyluci.py -v sample.py
+python pyluci.py -vr sample.py
 ```
 
 To remove docstrings from a file, use the -s option:
@@ -148,11 +148,8 @@ You can set the host and port of the ollama server with --host and --port:
 python pyluci.py -cupm sample.py --host <some_hostname> --port <some_port>
 ```
 
+### Roadmap
 
-
-
-
-
-
-
-
+Future enhancements include:
+1. Adding options to provide alternative sample docstrings 
+1. Extending to support additional programming languages

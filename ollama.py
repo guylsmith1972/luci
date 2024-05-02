@@ -19,7 +19,7 @@ class OllamaService:
         return cls._instance
     
     @staticmethod
-    def get_models(options):
+    def get_models(options, logger):
         """
         Retrieves a list of available machine learning models from a specified API
         endpoint.
@@ -46,11 +46,11 @@ class OllamaService:
             models = data.get("models", [])
             return models
         except requests.RequestException as e:
-            print(f"An error occurred: {e}")
+            logger.error(f"An error occurred: {e}")
             return None
 
     @staticmethod
-    def is_model_installed(options):
+    def is_model_installed(options, logger):
         """
         Determines whether the specified model is installed.
 
@@ -65,7 +65,7 @@ class OllamaService:
         Returns:
           bool: True if the specified model is installed, False otherwise.
         """
-        models = OllamaService.get_models(options)    
+        models = OllamaService.get_models(options, logger)    
         
         target_parts = options.model.split(':')
         for model in models:
@@ -152,7 +152,7 @@ class OllamaService:
         if self.ollama_process is None:
             self.start()
             
-        if not OllamaService.is_model_installed(options):
+        if not OllamaService.is_model_installed(options, logger):
             logger.critical(f'Model "{options.model}" is not installed. Rerun script with --install-model {options.model}')
             exit(0)
 

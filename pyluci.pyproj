@@ -13,8 +13,9 @@
     <Name>pyluci</Name>
     <RootNamespace>Elucidator</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>-cpm docstrings.py ollama.py pyluci.py queries.py</CommandLineArguments>
+    <CommandLineArguments>-vr -l 0 docstrings.py</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
+    <InterpreterId>MSBuild|venv|$(MSBuildProjectFullPath)</InterpreterId>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -25,6 +26,7 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="samples.py" />
     <Compile Include="pyluci.py" />
     <Compile Include="docstrings.py" />
     <Compile Include="ollama.py" />
@@ -32,16 +34,29 @@
     <Compile Include="testing\example.py" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="samples\" />
-    <Folder Include="queries\" />
+    <Folder Include="old-samples\" />
+    <Folder Include="old-queries\" />
     <Folder Include="testing\" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="queries\check_docstring_template.txt" />
-    <Content Include="queries\generate_docstring_template.txt" />
+    <Content Include="pyluci.spec" />
+    <Content Include="old-queries\check_docstring_template.txt" />
+    <Content Include="old-queries\generate_docstring_template.txt" />
     <Content Include="README.md" />
-    <Content Include="samples\example_function.txt" />
-    <Content Include="samples\example_docstring.txt" />
+    <Content Include="requirements.txt" />
+    <Content Include="old-samples\example_function.txt" />
+    <Content Include="old-samples\example_docstring.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Interpreter Include="venv\">
+      <Id>venv</Id>
+      <Version>3.10</Version>
+      <Description>venv (Python 3.10 (64-bit))</Description>
+      <InterpreterPath>Scripts\python.exe</InterpreterPath>
+      <WindowsInterpreterPath>Scripts\pythonw.exe</WindowsInterpreterPath>
+      <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
+      <Architecture>X64</Architecture>
+    </Interpreter>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

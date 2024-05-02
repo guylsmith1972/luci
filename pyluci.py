@@ -1,4 +1,5 @@
 import argparse
+import samples
 import logging
 from docstrings import DocstringService
 from ollama import OllamaService
@@ -67,10 +68,8 @@ def get_arguments():
     # Parse the arguments
     args = parser.parse_args()
     
-    with open('samples/example_docstring.txt', 'r') as infile:
-        args.example_docstring = infile.read()
-    with open('samples/example_function.txt', 'r') as infile:
-        args.example_function = infile.read()
+    args.example_docstring = samples.example_docstring
+    args.example_function = samples.example_function
 
     return args
 
@@ -116,50 +115,6 @@ def get_logger(args):
     return logger
 
 
-def list_models(args, logger):
-    """
-    Lists and prints the names of all models supported by the Ollama Service.
-
-    This function takes a set of arguments and a logger object as input, uses them
-    to retrieve a list of models from the service, and then iterates over this list
-    printing out each model name.
-
-    Parameters:
-      args (Any): The input arguments for the OllamaService.
-      logger (Logger): A logging object used to log any errors or messages.
-
-    Returns:
-      None: The function does not return any values. It simply prints out the names
-    of the models.
-    """
-    models = OllamaService.get_models(args)
-    for model in models:
-        print(f"{model['name']}")
-
-def install_model(args, logger):
-    """
-    Installs a machine learning model using provided arguments and logging
-    information.
-    This function is a wrapper around the actual installation logic implemented in
-    OllamaService. It provides basic logging and prints out the status of the
-    installation process.
-
-    Parameters:
-      args (dict): A dictionary containing the necessary install model
-                  parameters.
-      logger (logger object): The logger object used to log any relevant information
-                              during the installation process.
-
-    Raises:
-      Exception: If any error occurs during the installation process.
-    Returns:
-      None: This function does not return any value. It prints out the status of the
-           installation process and logs any relevant information.
-    """
-    print(f'Install model is {args.install_model}')
-    OllamaService.install_model(args, logger)
-
-
 def main():
     """
     This is the main entry point of the application. It handles command-line
@@ -191,10 +146,13 @@ def main():
         exit(1)
         
     if args.list:
-        list_models(args, logger)
+        models = OllamaService.get_models(args, logger)
+        print('-' * 79)
+        for model in models:
+            print(f"{model['name']}")
         
     if args.install_model:
-        install_model(args, logger)
+        OllamaService.install_model(args, logger)
         
     # Create the docstring service
     docstring_service = DocstringService(args, logger)
