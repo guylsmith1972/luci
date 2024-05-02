@@ -1,7 +1,7 @@
 
 # Docstring Generator
 
-This command-line tool helps to automatically generate, modify, or validate docstrings in Python files. It utilizes a GPT model for generating docstrings based on the function's code and context.
+This command-line tool helps to automatically generate, modify, validate, or strip docstrings in Python files. It utilizes a GPT model for generating docstrings based on the function's code and context.
 
 ## Installation
 
@@ -105,7 +105,7 @@ python pyluci.py -v sample.py
 To remove docstrings from a file, use the -s option:
 
 ```
-python pyluci.py --v sample.py
+python pyluci.py -s sample.py
 ```
 
 You can focus on a specific function or functions by appending a colon-separated list of fully-qualified function names to the file name. The following example will only validate docstrings in the function named 'function_name' at the module level, and the method named 'method_name' that is part of the class 'class_name' which is defined at the module level.
