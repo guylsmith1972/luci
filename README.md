@@ -5,26 +5,19 @@ This command-line tool helps to automatically generate, modify, validate, or str
 
 ## Installation
 
-Before using the tool, ensure that Python is installed on your system. Alternatively you can use the Windows .exe located in the dist file (executables for other operating systems will be added in time)
+For Windows or WSL users, add dist/pyluci.exe to your PATH environment variable. Standalone executables for other operating systems will be added in time.
 
-You will also need to have Ollama installed, and the ollama executable must be in the PATH in which the command is executed.
-
-## Usage
-
-The script is executed from the command line with several options to control its behavior. Here is the basic usage:
-
+You will also need to have Ollama installed, and the ollama executable must be in the PATH.
 
 # pyluci.py Usage
 
-Create, update, validate, or strip docstrings in Python files.
-
-## Usage
+Create, update, validate, or strip docstrings in Python files from the command line.
 
 ```bash
-usage: pyluci.py [-h] [-a [1-100]] [-c] [-d [1-100]] [-l {0,1,2}] [-m]
-                 [-p] [-r] [-s] [-u] [-v] [--install-model MODEL_NAME]
-                 [--list] [--model MODEL] [--host HOST] [--port PORT]
-                 [filenames ...]
+usage: pyluci [-h] [-a [1-100]] [-c] [-d [1-100]] [-l {0,1,2}] [-m]
+              [-p] [-r] [-s] [-u] [-v] [--install-model MODEL_NAME]
+              [--list] [--model MODEL] [--host HOST] [--port PORT]
+              [filenames ...]
 ```
 
 ## Positional Arguments
@@ -75,49 +68,49 @@ usage: pyluci.py [-h] [-a [1-100]] [-c] [-d [1-100]] [-l {0,1,2}] [-m]
 To create docstrings for all functions in `sample.py` that lack them. This example uses -c to create docstrings, -p to preview changes, and -m to modify the file with the results.
 
 ```
-python pyluci.py -cpm sample.py
+pyluci -cpm sample.py
 ```
 
 To update docstrings for all functions in `sample.py` that lack them. This example uses -u to update existing docstrings, -p to preview changes, and -m to modify the file with the results.
 
 ```
-python pyluci.py -upm sample.py
+pyluci -upm sample.py
 ```
 
 To only update docstrings that are out of date, add the -v option:
 
 ```
-python pyluci.py -upmv sample.py
+pyluci -upmv sample.py
 ```
 
 Creation and updates can occur at the same time:
 
 ```
-python pyluci.py -cupm sample.py
+pyluci -cupm sample.py
 ```
 
 To produce a report on the correctness of existing docstrings, use the -r and -v options without using -c or -u:
 
 ```
-python pyluci.py -vr sample.py
+pyluci -vr sample.py
 ```
 
 To remove docstrings from a file, use the -s option:
 
 ```
-python pyluci.py -s sample.py
+pyluci -s sample.py
 ```
 
 You can focus on a specific function or functions by appending a colon-separated list of fully-qualified function names to the file name. The following example will only validate docstrings in the function named 'function_name' at the module level, and the method named 'method_name' that is part of the class 'class_name' which is defined at the module level.
 
 ```
-python pyluci.py -v sample.py:function_name:class_name.method_name
+pyluci -v sample.py:function_name:class_name.method_name
 ```
 
 If you want to affect deeply-nested functions, you will need to increase the depth. By default, pyluci will only document top-level functions and methods of classes that are defined at the top level. Use -d to increase the depth:
 
 ```
-python pyluci.py -v -d 2 sample.py:function_name.nest_function_name:class_name.nested_class_name.method_name
+pyluci -v -d 2 sample.py:function_name.nest_function_name:class_name.nested_class_name.method_name
 ```
 
 
@@ -126,26 +119,26 @@ python pyluci.py -v -d 2 sample.py:function_name.nest_function_name:class_name.n
 pyluci uses Ollama to manage the llama models used to generate docstrings. By default it uses llama3. Other models may be used by setting the --model option
 
 ```
-python pyluci.py -cupm sample.py --model llama2
+pyluci -cupm sample.py --model llama2
 ```
 
 You can list available models with --list:
 
 ```
-python pyluci.py --list
+pyluci --list
 ```
 
 You can install a model with the --install-model option:
 
 
 ```
-python pyluci.py --install-model llama2:latest
+pyluci --install-model llama2:latest
 ```
 
 You can set the host and port of the ollama server with --host and --port:
 
 ```
-python pyluci.py -cupm sample.py --host <some_hostname> --port <some_port>
+pyluci -cupm sample.py --host <some_hostname> --port <some_port>
 ```
 
 ### Roadmap
