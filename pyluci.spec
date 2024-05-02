@@ -8,7 +8,7 @@ a = Analysis(
     ['pyluci.py'],
     pathex=[],
     binaries=[],
-    datas=[('samples', 'samples')],
+    datas=[],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

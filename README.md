@@ -5,7 +5,7 @@ This command-line tool helps to automatically generate, modify, validate, or str
 
 ## Installation
 
-Before using the tool, ensure that Python is installed on your system.
+Before using the tool, ensure that Python is installed on your system. Alternatively you can use the Windows .exe located in the dist file (executables for other operating systems will be added in time)
 
 You will also need to have Ollama installed, and the ollama executable must be in the PATH in which the command is executed.
 

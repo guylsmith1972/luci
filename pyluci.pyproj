@@ -34,18 +34,13 @@
     <Compile Include="testing\example.py" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="old-samples\" />
-    <Folder Include="old-queries\" />
     <Folder Include="testing\" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include=".gitignore" />
     <Content Include="pyluci.spec" />
-    <Content Include="old-queries\check_docstring_template.txt" />
-    <Content Include="old-queries\generate_docstring_template.txt" />
     <Content Include="README.md" />
     <Content Include="requirements.txt" />
-    <Content Include="old-samples\example_function.txt" />
-    <Content Include="old-samples\example_docstring.txt" />
   </ItemGroup>
   <ItemGroup>
     <Interpreter Include="venv\">
