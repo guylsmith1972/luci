@@ -1,5 +1,5 @@
 # This code is not inteded to be run, and so is missing imports.
-# Use it to test Elucidator.
+# Use it to test pyluci.
 
 
 def check(n):
