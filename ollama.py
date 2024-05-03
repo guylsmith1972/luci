@@ -7,11 +7,22 @@ class OllamaService:
 
     def __new__(cls):
         """
-        Singleton pattern implementation.
-        This method creates a single instance of the OllamaService class and returns it.
+        Creates or retrieves an instance of the OllamaService class.
+
+        This special method ensures that only one instance of the OllamaService class
+        can be created. If the class does not have an instance yet, it creates a new
+        instance and assigns it to the class's `_instance` attribute. The method then
+        returns this instance.
+
+        Parameters:
+        cls (class): The OllamaService class for which an instance is being created or
+                    retrieved.
 
         Returns:
-            The single instance of the OllamaService class.
+        object: An instance of the OllamaService class.
+
+        Examples:
+        Creates a new instance of the OllamaService class.   __new__(OllamaService)
         """
         if cls._instance is None:
             cls._instance = super(OllamaService, cls).__new__(cls)
@@ -21,21 +32,31 @@ class OllamaService:
     @staticmethod
     def get_models(options, logger):
         """
-        Retrieves a list of available machine learning models from a specified API
-        endpoint.
+        Retrieves a list of models from a specified API endpoint.
 
-        This function sends a GET request to the provided URL, parses the response JSON,
-        and returns the list of models. If an error occurs during the request or
-        parsing,
-        it prints the error message and returns None instead.
+        This static method sends an HTTP GET request to the provided API endpoint,
+        parses the response as JSON, and returns the list of models. It handles any
+        exceptions that occur during the request process by logging the error and
+        returning None if the request fails.
 
         Parameters:
-          options (dict): A dictionary containing the host and port details for
-                          the API endpoint.
+        options (object): An object containing host and port information for the API
+                    endpoint.
+        logger (object): A logger object used to log errors that occur during the
+                    request process.
 
         Returns:
-          list: A list of available machine learning models, or None if an error
-                occurred.
+        list: A list of models retrieved from the API endpoint.
+
+        Errors:
+        requests.RequestException: Thrown if an error occurs during the HTTP request
+                    process, such as a connection timeout or invalid response status
+                    code.
+
+        Examples:
+        Retrieves models from API endpoint 'http://example.com:8080/api/tags' using
+                    options and logger objects.   get_models({'host': 'example.com',
+                    'port': 8080}, logger)
         """
         url = f"http://{options.host}:{options.port}/api/tags"
         
@@ -52,18 +73,24 @@ class OllamaService:
     @staticmethod
     def is_model_installed(options, logger):
         """
-        Determines whether the specified model is installed.
+        Checks whether a specific model is installed in an OllamaService instance.
 
-        This function checks if a specific model is available by comparing its parts
-        against the list of models provided by OllamaService. The model name and its
-        parts are split using the colon (:) character.
+        This function takes options and logger as input, retrieves the list of installed
+        models using the OllamaService API, and then checks if the target model matches
+        any of the installed models based on their names. If a match is found, it
+        returns True; otherwise, it returns False.
 
         Parameters:
-          options (dict): A dictionary containing information about the model to check,
-                          including its name and any other relevant details.
+        options (object): Contains configuration options that may affect the function's
+                    behavior.
+        logger (object): Represents a logging mechanism for recording events or errors.
 
         Returns:
-          bool: True if the specified model is installed, False otherwise.
+        boolean: Indicates whether the target model is installed (True) or not (False).
+
+        Examples:
+        Checks if a specific model is installed using options and logger.
+         is_model_installed(options, logger)
         """
         models = OllamaService.get_models(options, logger)    
         
@@ -83,27 +110,35 @@ class OllamaService:
     @staticmethod
     def install_model(options, logger):
         """
-        Installs a Ollama model using the provided options and logger.
+        Installs a Ollama model using its API endpoint.
 
-        This method sends a POST request to the specified API endpoint with the required
-        payload
-        and checks the response. If the installation is successful, it returns True;
-        otherwise,
-        it logs a critical error message and returns False.
-
-        If any exceptions occur during the process, such as network errors or invalid
-        responses,
-        the method logs a critical error message and returns an error dictionary
-        containing
-        the exception message.
+        This static method makes a POST request to the Ollama API to install a specified
+        model. It handles both successful and failed installations, logging information
+        and error messages accordingly.
 
         Parameters:
-          options (dict): Options for installing the model.
-          logger (Logger): Logger object to log installation status.
+        options (object): An object containing options for installing the Ollama model,
+                    such as host and port.
+        logger (object): A logger object used to log information and error messages
+                    during the installation process.
 
         Returns:
-          bool: True if installation is successful, False otherwise.
-          dict: Error dictionary with the exception message if an error occurs.
+        boolean | dictionary: Returns a boolean indicating whether the installation was
+                    successful, or a dictionary containing an error message if the
+                    installation failed.
+
+        Errors:
+        requests.RequestException: Thrown if there is a network error during the request
+                    to the Ollama API.
+
+        Examples:
+        Installs the 'my_model' model on host 'example.com' and port 8080, logging
+                    installation information.   install_model({'host': 'example.com',
+                    'port': 8080}, {'name': 'logger'})
+
+        Notes:
+        This method relies on the 'requests' library to make HTTP requests to the Ollama
+         API.
         """
         url = f"http://{options.host}:{options.port}/api/pull"
         headers = {'Content-Type': 'application/json'}
@@ -130,24 +165,36 @@ class OllamaService:
 
     def query(self, prompt, options, logger):
         """
-        Queries the OLLAMA service with the provided prompt and options.
+        Queries the Ollama API with a given prompt and options.
 
-        This function sends a POST request to the OLLAMA API with the specified model,
-        prompt, and options. If the model is not installed, it will log an error message
-        and exit. It also handles any exceptions that occur during the request and
-        returns the response as JSON.
+        This function interacts with the Ollama API to generate text based on a provided
+        prompt. It checks if an Ollama process is running, installs the required model
+        if it's not already installed, and then sends a POST request to the API with the
+        prompt and other necessary information. If an error occurs during the request,
+        it returns an error message.
 
         Parameters:
-          self (object): The instance of the class.
-          prompt (str): The text prompt to query OLLAMA with.
-          options (dict): A dictionary containing the model, host, port, and other
-                          configuration options for the OLLAMA service.
-          logger (logger): A logging object used for logging errors.
+        self (object): An instance of the class this function belongs to.
+        prompt (string): The prompt used for generating text with Ollama.
+        options (object): Options for the query, including model and host information.
+        logger (object): A logger object for logging messages.
 
         Returns:
-          dict: A JSON response from OLLAMA. If an error occurs during the request,
-                it will return a dictionary with an "error" key containing the error
-                message.
+        string|dict: The generated text response from Ollama, or an error message if an
+                    exception occurs.
+
+        Errors:
+        requests.RequestException: Thrown if there is a problem with the HTTP request to
+                    the Ollama API.
+
+        Examples:
+        Queries the Ollama API with a prompt and options.   query(self, 'This is a test
+                    prompt', {'model': 'my_model', 'host': 'localhost', 'port': 5000},
+                    logger)
+
+        Notes:
+        This function relies on the `requests` library to send an HTTP request to the
+         Ollama API. Ensure this library is installed for proper operation.
         """
         if self.ollama_process is None:
             self.start()
@@ -169,26 +216,49 @@ class OllamaService:
 
     def start(self):
         """
-        Starts the Ollama process in the background.
-        This method initializes and runs the Ollama server as a separate
-        process. If the process has not been started yet, it creates a new Popen
-        object to manage the process.
+        Starts an Ollama process to serve requests.
+
+        This method initializes or restarts the Ollama process if it's not already
+        running. It creates a new subprocess for the 'ollama' command with 'serve' as
+        its argument, and captures both stdout and stderr streams.
 
         Parameters:
-          self (Ollama): The instance of the Ollama class that this method is part of.
+        self (object): The object instance of the class this method is called on.
 
         Returns:
-          None: This method does not return any value.
+        void: Does not return any value. This method's primary effect is starting or
+              restarting the Ollama process.
+
+        Errors:
+        RuntimeError: Thrown if there are issues creating or running the subprocess,
+                    such as file system errors or invalid command arguments.
+
+        Examples:
+        Starts the Ollama process serving requests.   start()
+
+        Notes:
+        This method assumes that the 'ollama' command is installed and available on the
+         system. If issues arise, it's recommended to check the subprocess creation or
+         running status.
         """
         if self.ollama_process is None:
             self.ollama_process = subprocess.Popen(['ollama', 'serve'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     def stop(self):
         """
-        Stops an Ollama process, if one is running.
+        Stops an Ollama process, if one exists.
 
-        This method terminates and waits for the Ollama process to finish. It should be
-        called when you are done using the Ollama process.
+        This function checks if an Ollama process is running and terminates it if so. It
+        then waits for the process to finish before returning.
+
+        Parameters:
+        self (object): The instance of the class containing this method.
+
+        Returns:
+        void: Does not return any value.
+
+        Examples:
+        Stops the Ollama process associated with an instance of a class.   stop()
         """
         if self.ollama_process:
             self.ollama_process.terminate()

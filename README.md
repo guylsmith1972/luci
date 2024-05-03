@@ -1,13 +1,14 @@
 
 # Docstring Generator
 
-This command-line tool helps to automatically generate, modify, validate, or strip docstrings in Python files. It utilizes a GPT model for generating docstrings based on the function's code and context.
+This command-line tool helps to automatically generate, modify, validate, or strip docstrings in Python files. It utilizes a GPT model for generating docstrings based on the function's code and comments.
 
 ## Installation
 
-For Windows or WSL users, add dist/luci.exe to your PATH environment variable. Standalone executables for other operating systems will be added in time.
+For Windows or WSL users, put dist/luci.exe in a location listed in your PATH environment variable. Standalone executables for other operating systems will be added in time.
 
-You will also need to have Ollama installed, and the ollama executable must be in the PATH.
+You will also need to have [Ollama](https://ollama.com/download) installed, and the ollama executable must be in the PATH. Luci expects llama3 to be installed in Ollama by default. You can install in manually with 'ollama pull llama3' or you can use luci to install it with 'luci --install-model llama3'.
+
 
 # Usage
 

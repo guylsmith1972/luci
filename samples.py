@@ -1,39 +1,57 @@
-example_docstring = '''
-"""
-Updates the docstring of a specified function within a Python source file.
-
-This function reads a Python file, parses its source code to find the function
-with the given name, and then replaces its existing docstring with the
-provided new docstring. The updated source code is then written back to the
-same file, effectively updating the file in-place.
-
-Parameters:
-  filename (str): The path to the Python source file where the function
-                  whose docstring is to be updated is located.
-  function_name (str): The name of the function whose docstring needs
-                       updating. The function should be defined at the
-                       top level of the module (not nested inside other
-                       classes or functions).
-  new_docstring (str): The new docstring content that will replace the
-                       existing docstring of the specified function.
-
-Raises:
-  FileNotFoundError: If the file specified by `filename` does not exist.
-  SyntaxError: If the source code in `filename` is not valid Python code.
-  ValueError: If no function with the name `function_name` exists in the
-              file, or if the file contains no functions at all.
-
-Returns:
-  None: The function does not return any value. It modifies the file directly.
-
-Example:
-> update_docstring("example.py", "my_function", "This is the new docstring.")
-# This will update the docstring of `my_function` in `example.py` file.
-
-Note:
-  This function does not handle functions defined within classes or other
-  scopes; only top-level functions are supported.
-"""
+example_json = '''
+{
+    "functionName": "update_docstring",
+    "summary": "Updates the docstring of a specified function within a Python file.",
+    "description": "This function reads a Python file, modifies the docstring of a specified function using the abstract syntax tree (AST), and writes the modified code back to the file. It ensures that the new docstring is correctly inserted at the beginning of the function definition.",
+    "parameters": [
+        {
+            "name": "filename",
+            "type": "string",
+            "description": "The path to the Python file containing the function whose docstring needs updating.",
+            "required": true,
+            "defaultValue": null
+        },
+        {
+            "name": "function_name",
+            "type": "string",
+            "description": "The name of the function whose docstring is to be updated.",
+            "required": true,
+            "defaultValue": null
+        },
+        {
+            "name": "new_docstring",
+            "type": "string",
+            "description": "The new docstring text that will replace the existing docstring of the function.",
+            "required": true,
+            "defaultValue": null
+        }
+    ],
+    "returns": [
+        {
+            "type": "void",
+            "description": "Does not return any value. The function's primary effect is the modification of the source code file."
+        }
+    ],
+    "errors": [
+        {
+            "name": "FileNotFoundError",
+            "description": "Thrown if the specified file cannot be found at the given path."
+        },
+        {
+            "name": "SyntaxError",
+            "description": "Thrown if the source code file contains syntax errors that prevent AST parsing."
+        }
+    ],
+    "examples": [
+        {
+            "description": "Updates the docstring of the function 'my_function' in 'example.py' to 'This is a new docstring.'",
+            "code": "update_docstring('example.py', 'my_function', 'This is a new docstring.')"
+        }
+    ],
+    "notes": [
+        "This function relies on the 'ast' and 'astor' libraries to parse and generate Python source code, respectively. Ensure these libraries are installed and the source file is syntactically correct for proper operation."
+    ]
+}
 '''
 
 example_function = '''

@@ -26,6 +26,7 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="formatting.py" />
     <Compile Include="samples.py" />
     <Compile Include="luci.py" />
     <Compile Include="docstrings.py" />

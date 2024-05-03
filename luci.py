@@ -1,26 +1,11 @@
-import argparse
-import samples
-import logging
 from docstrings import DocstringService
 from ollama import OllamaService
+import argparse
+import logging
+import samples
 
 
 def get_arguments():
-    """
-    Parse command line arguments.
-
-    This function parses the command line arguments provided to the script.
-    It uses the argparse library to define a set of command-line options,
-    and then parses those options from the command line.
-
-    Parameters:
-      None: This function does not take any parameters. It only returns the parsed
-            arguments.
-
-    Returns:
-      args (argparse.Namespace): The parsed command line arguments, which can be
-            accessed as attributes on the returned object.
-    """
     # Initialize the parser
     parser = argparse.ArgumentParser(description="Create, update, or validate docstrings in Python files.")
 
@@ -68,7 +53,7 @@ def get_arguments():
     # Parse the arguments
     args = parser.parse_args()
     
-    args.example_docstring = samples.example_docstring
+    args.example_json = samples.example_json
     args.example_function = samples.example_function
 
     return args
@@ -76,27 +61,30 @@ def get_arguments():
 
 def get_logger(args):
     """
-    Creates a new logger with the specified log level. The log level is determined
-    by the `log_level` argument.
+    Creates and configures a logging object based on the provided log level.
 
-    This function creates a new logger and sets its log level based on the provided
-    `log_level`. It then adds a console handler to the logger, which allows logs to
-    be printed to the console.
-
-    The log level can be one of three levels: 0 (CRITICAL), 1 (INFO), or 2 (DEBUG).
-    If `log_level` is not specified or is invalid, the default log level will be
-    used.
+    This function initializes a logger with a specified name, sets its logging level
+    according to the input log level, and adds a console handler for outputting logs
+    to the standard output. The logging level can be set to CRITICAL (no logs), INFO
+    (brief logs), or DEBUG (verbose logs).
 
     Parameters:
-        args (obj): The arguments object containing the log level to use for the
-    logger.
+    args (object): An object containing the log level and other logging
+                configuration parameters.
 
     Returns:
-        logger (logging.Logger): The new logger with the specified log level.
+    logger: The configured logger object.
 
-    Example:
-    > get_logger({'log_level': 1}) # This will create a logger with an INFO log
-    level
+    Errors:
+    RuntimeError: Thrown if the log level is out of range (0-2).
+
+    Examples:
+    Creates a logger with debug logs for the current module.
+                get_logger({'log_level': 2})
+
+    Notes:
+    This function relies on the 'logging' library to handle logging configuration.
+     Ensure this library is installed and used correctly.
     """
     logger = logging.getLogger(__name__)
     if args.log_level == 0:
@@ -117,26 +105,35 @@ def get_logger(args):
 
 def main():
     """
-    This is the main entry point of the application. It handles command-line
-    arguments and orchestrates the execution of various functions to update
-    docstrings in Python files.
+    The main entry point for processing files and generating docstrings. This
+    function handles command-line arguments, logs messages, and performs actions
+    based on user input.
 
-    The function accepts a set of options, including file names, logging levels, and
-    actions to perform on the files. The main logic involves:
-
-    - Processing each file with the document_file function
-    - Printing reports if requested
-    - Asking for user confirmation before saving changes (if preview or report
-    option is enabled)
-    - Saving the modified file (if confirmed) or reporting that no changes were made
-
-    This function does not handle errors and exceptions, relying on other functions
-    to do so. It should be called with valid command-line arguments.
+    This function is responsible for executing various tasks such as processing
+    files, generating docstrings, installing models, and reporting results. It uses
+    a combination of command-line arguments and interactive user prompts to guide
+    its behavior.
 
     Parameters:
-      None: This function does not take any explicit parameters.
-      Returns:
-      None: The function does not return any value.
+    args (object): An object containing command-line arguments for the function.
+    logger (object): A logger object used to output messages during execution.
+
+    Returns:
+    void: Does not return any value. The function's primary effect is the execution
+          of various actions based on user input and command-line arguments.
+
+    Errors:
+    CriticalError: Thrown if an invalid combination of command-line options is
+                detected, such as using -s with -c or -u.
+
+    Examples:
+    Executes the main function with sample command-line arguments and logs messages.
+     main(get_arguments(), get_logger())
+
+    Notes:
+    This function relies on other functions (get_arguments, get_logger,
+     OllamaService, DocstringService) to perform specific tasks. These functions
+     should be implemented and available for proper execution of this main function.
     """
     args = get_arguments()
     logger = get_logger(args)
