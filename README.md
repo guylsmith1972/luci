@@ -15,9 +15,9 @@ Create, update, validate, or strip docstrings in Python files from the command l
 
 ```bash
 usage: luci [-h] [-a [1-100]] [-c] [-d [1-100]] [-l {0,1,2}] [-m]
-              [-p] [-r] [-s] [-u] [-v] [--install-model MODEL_NAME]
-              [--list] [--model MODEL] [--host HOST] [--port PORT]
-              [filenames ...]
+            [-p] [-r] [-s] [-u] [-v] [--install-model MODEL_NAME]
+            [--list] [--model MODEL] [--host HOST] [--port PORT]
+            [filenames ...]
 ```
 
 ## Positional Arguments
