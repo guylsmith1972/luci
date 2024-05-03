@@ -5,7 +5,7 @@
     <ProjectGuid>e50e2acd-8c1c-4ff7-8946-613eb63e36ed</ProjectGuid>
     <ProjectHome>
     </ProjectHome>
-    <StartupFile>luci.py</StartupFile>
+    <StartupFile>uniparse.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -33,6 +33,7 @@
     <Compile Include="ollama.py" />
     <Compile Include="queries.py" />
     <Compile Include="testing\example.py" />
+    <Compile Include="uniparse.py" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="testing\" />

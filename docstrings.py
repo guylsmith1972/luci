@@ -7,7 +7,7 @@ import textwrap
 
 class DocstringService:
     class DocstringUpdater(cst.CSTTransformer):
-        def __init__(self, docstring_service, default_indent, functions_of_interest):
+        def __init__(self, docstring_service, functions_of_interest):
             """
             Initializes the object with various settings and services.
 
@@ -20,8 +20,6 @@ class DocstringService:
             self (object): The object being initialized.
             docstring_service (object): A docstring service object that provides various
                         functionality for processing and generating documentation.
-            default_indent (integer): The default indentation level used in the object's
-                        operations.
             functions_of_interest (list of strings): A list of fully-qualified function
                         names that indicate the functions to be processed and documented.
 
@@ -39,13 +37,15 @@ class DocstringService:
             """
             self.class_level = 0
             self.function_level = 0
+            # Store the FQFN as a list of class and function names
             self.fully_qualified_function_name = []
-            self.default_indent = default_indent
             self.docstring_service = docstring_service
+            # options contains the parsed command-line arguments
             self.options = docstring_service.options
             self.reports = []
             # functions_of_interest is a list of fully-qualified function names. These are dot-separated
-            # identifiers that indicate the complete nesting of the function, eg class_name.method_name.nested_function_name
+            # identifiers that indicate the complete nesting of the function excluding the module name,
+            # eg class_name.method_name.nested_function_name.
             self.functions_of_interest = functions_of_interest
             self.logger = docstring_service.logger
             self.leading_whitespace = []
@@ -573,6 +573,6 @@ class DocstringService:
             source_code = source_file.read()
 
         tree = cst.parse_module(source_code)
-        transformer = DocstringService.DocstringUpdater(self, tree, functions_of_interest)
+        transformer = DocstringService.DocstringUpdater(self, functions_of_interest)
         modified_tree = tree.visit(transformer)
         return modified_tree.code, transformer.reports, transformer.modified

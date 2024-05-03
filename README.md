@@ -157,5 +157,6 @@ luci -cupm sample.py --host <some_hostname> --port <some_port>
 Future enhancements:
 1. Add options to provide alternative sample docstrings 
 1. Extend to support additional programming languages
-1. Improve formatting of docstrings
 1. Add change history to docstring or in comments following docstring
+1. LSP support
+1. Editor integration???
