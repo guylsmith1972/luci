@@ -98,19 +98,19 @@ luci -vr sample.py
 To remove docstrings from a file, use the -s option:
 
 ```
-luci -s sample.py
+luci -ms sample.py
 ```
 
 You can focus on a specific function or functions by appending a colon-separated list of fully-qualified function names to the file name. The following example will only validate docstrings in the function named 'function_name' at the module level, and the method named 'method_name' that is part of the class 'class_name' which is defined at the module level.
 
 ```
-luci -v sample.py:function_name:class_name.method_name
+luci -vr sample.py:function_name:class_name.method_name
 ```
 
 If you want to affect deeply-nested functions, you will need to increase the depth. By default, luci will only document top-level functions and methods of classes that are defined at the top level. Use -d to increase the depth:
 
 ```
-luci -v -d 2 sample.py:function_name.nest_function_name:class_name.nested_class_name.method_name
+luci -vr -d 2 sample.py:function_name.nest_function_name:class_name.nested_class_name.method_name
 ```
 
 
