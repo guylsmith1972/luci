@@ -5,16 +5,16 @@ This command-line tool helps to automatically generate, modify, validate, or str
 
 ## Installation
 
-For Windows or WSL users, add dist/pyluci.exe to your PATH environment variable. Standalone executables for other operating systems will be added in time.
+For Windows or WSL users, add dist/luci.exe to your PATH environment variable. Standalone executables for other operating systems will be added in time.
 
 You will also need to have Ollama installed, and the ollama executable must be in the PATH.
 
-# pyluci.py Usage
+# Usage
 
 Create, update, validate, or strip docstrings in Python files from the command line.
 
 ```bash
-usage: pyluci [-h] [-a [1-100]] [-c] [-d [1-100]] [-l {0,1,2}] [-m]
+usage: luci [-h] [-a [1-100]] [-c] [-d [1-100]] [-l {0,1,2}] [-m]
               [-p] [-r] [-s] [-u] [-v] [--install-model MODEL_NAME]
               [--list] [--model MODEL] [--host HOST] [--port PORT]
               [filenames ...]
@@ -68,77 +68,77 @@ usage: pyluci [-h] [-a [1-100]] [-c] [-d [1-100]] [-l {0,1,2}] [-m]
 To create docstrings for all functions in `sample.py` that lack them. This example uses -c to create docstrings, -p to preview changes, and -m to modify the file with the results.
 
 ```
-pyluci -cpm sample.py
+luci -cpm sample.py
 ```
 
 To update docstrings for all functions in `sample.py` that lack them. This example uses -u to update existing docstrings, -p to preview changes, and -m to modify the file with the results.
 
 ```
-pyluci -upm sample.py
+luci -upm sample.py
 ```
 
 To only update docstrings that are out of date, add the -v option:
 
 ```
-pyluci -upmv sample.py
+luci -upmv sample.py
 ```
 
 Creation and updates can occur at the same time:
 
 ```
-pyluci -cupm sample.py
+luci -cupm sample.py
 ```
 
 To produce a report on the correctness of existing docstrings, use the -r and -v options without using -c or -u:
 
 ```
-pyluci -vr sample.py
+luci -vr sample.py
 ```
 
 To remove docstrings from a file, use the -s option:
 
 ```
-pyluci -s sample.py
+luci -s sample.py
 ```
 
 You can focus on a specific function or functions by appending a colon-separated list of fully-qualified function names to the file name. The following example will only validate docstrings in the function named 'function_name' at the module level, and the method named 'method_name' that is part of the class 'class_name' which is defined at the module level.
 
 ```
-pyluci -v sample.py:function_name:class_name.method_name
+luci -v sample.py:function_name:class_name.method_name
 ```
 
-If you want to affect deeply-nested functions, you will need to increase the depth. By default, pyluci will only document top-level functions and methods of classes that are defined at the top level. Use -d to increase the depth:
+If you want to affect deeply-nested functions, you will need to increase the depth. By default, luci will only document top-level functions and methods of classes that are defined at the top level. Use -d to increase the depth:
 
 ```
-pyluci -v -d 2 sample.py:function_name.nest_function_name:class_name.nested_class_name.method_name
+luci -v -d 2 sample.py:function_name.nest_function_name:class_name.nested_class_name.method_name
 ```
 
 
 #### Managing Ollama
 
-pyluci uses Ollama to manage the llama models used to generate docstrings. By default it uses llama3. Other models may be used by setting the --model option
+luci uses Ollama to manage the llama models used to generate docstrings. By default it uses llama3. Other models may be used by setting the --model option
 
 ```
-pyluci -cupm sample.py --model llama2
+luci -cupm sample.py --model llama2
 ```
 
 You can list available models with --list:
 
 ```
-pyluci --list
+luci --list
 ```
 
 You can install a model with the --install-model option:
 
 
 ```
-pyluci --install-model llama2:latest
+luci --install-model llama2:latest
 ```
 
 You can set the host and port of the ollama server with --host and --port:
 
 ```
-pyluci -cupm sample.py --host <some_hostname> --port <some_port>
+luci -cupm sample.py --host <some_hostname> --port <some_port>
 ```
 
 ### Roadmap
