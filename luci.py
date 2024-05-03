@@ -25,25 +25,25 @@ def get_arguments():
     parser = argparse.ArgumentParser(description="Create, update, or validate docstrings in Python files.")
 
     parser.add_argument('-a', '--attempts', type=int, default=5, metavar='[1-100]',
-                        help='Set the number of attempts for processing. Must be an integer in the range [1..100].')
+                        help='Set the number of attempts for processing. Must be an integer in the range [1-100].')
     parser.add_argument('-c', '--create', action='store_true',
                         help='Create new docstrings for functions that do not currently have one.')
     parser.add_argument('-d', '--depth', type=int, default=1, metavar='[1-100]',
-                        help='Set the depth for processing. Must be an integer in the range [1..100].')
+                        help='Set the depth for processing. Must be an integer in the range [1-100].')
     parser.add_argument('-l', '--log-level', type=int, default=1, choices=range(0, 3),
-                        help='Set the log level. 0 = no logs, 1 = brief logs, 2 = verbose logs')
+                        help='Set the log level. 0 = no logs, 1 = brief logs, 2 = verbose logs.')
     parser.add_argument('-m', '--modify', action='store_true',
-                        help='Modify the original files with new changes. If -p or -r is also specified, will prompt user before modifying the file.')
+                        help='Modify the original files with new changes. If -p or -r is also specified, the file will prompt the user before modifying.')
     parser.add_argument('-p', '--preview', action='store_true',
-                        help='Preview the content of the files without making changes unless -m is also specified, in which case it will prompt user before modifying the file.')
+                        help='Preview the content of the files without making changes unless -m is also specified, in which case, it will prompt the user before modifying.')
     parser.add_argument('-r', '--report', action='store_true',
-                        help='Show report after each file is processed. If the -m flag is present, this flag will cause the user to be prompted before the modification occurs.')
+                        help='Show a report after each file is processed. If the -m flag is present, this flag will cause the user to be prompted before the modification occurs.')
     parser.add_argument('-s', '--strip', action='store_true',
-                        help='Strip existing docstrings. When used in conjunction with -v, will only strip docstrings that fail validation. Incompatible with -u and -c.')
+                        help='Strip existing docstrings. When used in conjunction with -v, it will only strip docstrings that fail validation. Incompatible with -u and -c.')
     parser.add_argument('-u', '--update', action='store_true',
-                        help='Update existing docstrings. If -v is specified, will only update if current docstring failed validation. Incompatible with -s.')
+                        help='Update existing docstrings. If -v is specified, it will only update if the current docstring failed validation. Incompatible with -s.')
     parser.add_argument('-v', '--validate', action='store_true',
-                        help='Validate that the docstrings in the file correctly describe the source code. If -u is specified, update will only occur if validation fails. If -s is specified, docstring will be deleted if validation fails.')
+                        help='Validate that the docstrings in the file correctly describe the source code. If -u is specified, an update will only occur if validation fails. If -s is specified, the docstring will be deleted if validation fails.')
 
     # Arguments for listing, installing, and choosing models
     parser.add_argument('--install-model', type=str, metavar='MODEL_NAME',
@@ -63,7 +63,7 @@ def get_arguments():
 
     # Adding positional argument for filenames
     parser.add_argument('filenames', nargs='*',
-                        help='List of filenames to process. If an undecorated filename is provided, all functions in the file will be examined. The limit the scope of operations, filenames can be decorated by add a colon-separated list of fully-qualified function names of the form foo.bar.zoo, where foo, bar, and zoo can be the names of functions or classes. Nesting of functions and classes is allowed. If a path is longer than the --depth field,a warning is reported and the function is not processed.')
+                        help='List of filenames to process. If an undecorated filename is provided, all functions in the file will be examined. To limit the scope of operations, filenames can be decorated by adding a colon-separated list of fully-qualified function names of the form foo.bar.zoo, where foo, bar, and zoo can be the names of functions or classes. Nesting of functions and classes is allowed. If a path is longer than the --depth field, a warning is reported, and the function is not processed.')
 
     # Parse the arguments
     args = parser.parse_args()
