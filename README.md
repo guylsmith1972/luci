@@ -152,6 +152,10 @@ You can set the host and port of the ollama server with --host and --port:
 luci -cupm sample.py --host <some_hostname> --port <some_port>
 ```
 
+### Tips and Tricks
+
+1. Sometimes the GPT will "embellish" the documentation by making claims about the code that are not true. You can guide the GPT to better documentation by adding clarifying comments to the code. These comments need to be placed within the function body that contains the erroneous documentation. After adding the clarifying comments, delete the documentation for the function and re-generate it. GPT misunderstandings can show you ways in which your code is not clear and "encourage" you to improve clarity.
+
 ### Roadmap
 
 Future enhancements:

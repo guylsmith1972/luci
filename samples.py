@@ -56,7 +56,6 @@ example_json = '''
 
 example_function = '''
 def update_docstring(filename, function_name, new_docstring):
-    """ Hello, world! """
     with open(filename, "r") as file:
         source_code = file.read()
 
