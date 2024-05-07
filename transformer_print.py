@@ -16,17 +16,17 @@ class PrintTransformer(transformer.Transformer):
         self.level -= 1
 
     def enter_class(self, args):
-        print(f'{"   " * self.level}Entering class {self.qualified_scope_name[-1]}: {self.get_qualified_scope_name()}')
+        print(f'{"   " * self.level}Entering class {self.get_scope_name()}: {self.get_qualified_scope_name()}')
     
     def leave_class(self, args):
-        print(f'{"   " * self.level}Leaving class {self.qualified_scope_name[-1]}: {self.get_qualified_scope_name()}')
+        print(f'{"   " * self.level}Leaving class {self.get_scope_name()}: {self.get_qualified_scope_name()}')
         
     def enter_function(self, args):
-        print(f'{"   " * self.level}Entering function {self.qualified_scope_name[-1]}: {self.get_qualified_scope_name()}')
+        print(f'{"   " * self.level}Entering function {self.get_scope_name()}: {self.get_qualified_scope_name()}')
         print(args["code_body"])
 
     def leave_function(self, args):
-        print(f'{"   " * self.level}Leaving function {self.qualified_scope_name[-1]}: {self.get_qualified_scope_name()}')
+        print(f'{"   " * self.level}Leaving function {self.get_scope_name()}: {self.get_qualified_scope_name()}')
         
     def enter_other(self, args):
         print(f'{"   " * self.level}{args["node"].type} -- {args["code_body"]}')

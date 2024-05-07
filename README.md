@@ -159,8 +159,12 @@ luci -cupm sample.py --host <some_hostname> --port <some_port>
 ### Roadmap
 
 Future enhancements:
-1. Add options to provide alternative sample docstrings 
-1. Extend to support additional programming languages
+1. Extend to support additional programming languages (in progress but not ready yet)
 1. Add change history to docstring or in comments following docstring
-1. LSP support
-1. Editor integration???
+1. LSP support / IDE integration
+1. Either remove the examples section from generated docs or improve it so the examples are good.
+1. Have it decide between brief documentation for small or simple functions  and verbose documentation for large or complex functions
+1. Pass scope information about class membership and nesting to ollama when generating documentation 
+1. Improve instructions to reduce hallucinations
+1. Improve instructions to reduce occurence of useless notes (for example, notes warning the developer to import packages containing functions that are referenced)
+1. Include list of imports for each function in instructions to ollama

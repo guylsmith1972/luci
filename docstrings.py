@@ -7,7 +7,7 @@ import textwrap
 
 class DocstringService:
     class DocstringUpdater(cst.CSTTransformer):
-        def __init__(self, docstring_service, functions_of_interest):
+        def __init__(self, docstring_service, qualified_function_names):
             self.class_level = 0
             self.function_level = 0
             # Store the current FQFN as a stack of class and function names
@@ -16,10 +16,10 @@ class DocstringService:
             # options contains the parsed command-line arguments
             self.options = docstring_service.options
             self.reports = []
-            # functions_of_interest is a list of fully-qualified function names. These are dot-separated
+            # qualified_function_names is a list of mostly-qualified function names. These are dot-separated
             # identifiers that indicate the complete nesting of the function excluding the module name,
             # eg class_name.method_name.nested_function_name.
-            self.functions_of_interest = functions_of_interest
+            self.qualified_function_names = qualified_function_names
             self.logger = docstring_service.logger
             self.leading_whitespace = []
             self.modified = False
@@ -141,19 +141,20 @@ class DocstringService:
             return updated_node, action_taken
         
         def leave_FunctionDef(self, original_node, updated_node):
+            # Note that the qualified function names include class and function nesting but do not include the module name
             action_taken = "did nothing"
             function_name = updated_node.name.value
             fully_qualified_function_name = self.get_fully_qualified_function_name()
 
             if self.function_level > self.options.depth or self.class_level > self.options.depth:
                 action_taken = f'skipped due to high nesting level -- function_level: {self.function_level}, class_level: {self.class_level}'
-                if self.functions_of_interest is not None and fully_qualified_function_name in self.functions_of_interest:
+                if self.qualified_function_names is not None and fully_qualified_function_name in self.qualified_function_names:
                     action_taken = f'ignored: you specified {fully_qualified_function_name} to be processed, but the depth setting is too low ({self.options.depth}). Increase the depth with the "--depth {max(self.function_level, self.class_level)}" option.'
                     self.logging.warning(action_taken)
             else:
                 do_process = True
-                if self.functions_of_interest is not None:
-                    do_process = fully_qualified_function_name in self.functions_of_interest 
+                if self.qualified_function_names is not None:
+                    do_process = fully_qualified_function_name in self.qualified_function_names 
                     if not do_process:
                         action_taken = f'Skipped because it is not in the decorated filename list of functions to document.'
                 if do_process:
@@ -173,15 +174,70 @@ class DocstringService:
             return updated_node
 
     def __init__(self, options, logger):
+        """
+        Initializes an instance of the class with given options and logger.
+
+        This special method is called when a new instance of the class is created. It
+        sets up the logger and Ollama service for use within the class.
+
+        Parameters:
+        self (object): The current instance of the class.
+        options (object): A dictionary of options to configure the class.
+        logger (object): An instance of a logger that will be used for logging purposes
+                    within the class.
+
+        Returns:
+        void: Does not return any value. The primary effect is to initialize the class
+              instance.
+
+        Examples:
+        Initializes an instance of the class with given options and logger.
+                    __init__(self, {'key': 'value'}, logger)
+        """
         self.logger = logger
         self.ollama = OllamaService()
         self.options = options
 
-    def document_file(self, file_path, functions_of_interest):
+    def document_file(self, file_path, qualified_function_names):
+        """
+        Updates the docstrings of specified functions within a Python file.
+
+        This function reads a Python file, parses its abstract syntax tree (AST), and
+        updates the docstrings of the specified functions using a custom transformer.
+        The transformed AST is then returned along with any reports or modified code.
+
+        Parameters:
+        file_path (string): The path to the Python file containing the functions whose
+                    docstrings need updating.
+        qualified_function_names (list of strings): A list of function names including
+                    class and function nesting, but not including the module name. These
+                    are the functions whose docstrings will be updated.
+
+        Returns:
+        tuple: A tuple containing the modified source code, a list of reports, and a
+               boolean indicating whether any modifications were made.
+
+        Errors:
+        FileNotFoundError: Thrown if the specified file cannot be found at the given
+                    path.
+        SyntaxError: Thrown if the source code file contains syntax errors that prevent
+                    parsing.
+
+        Examples:
+        Updates the docstrings of functions 'MyClass.my_function' and
+         'AnotherClass.another_function' in 'example.py'.   document_file('example.py',
+         ['MyClass.my_function', 'AnotherClass.another_function'])
+
+        Notes:
+        This function relies on the 'cst' library to parse Python source code and
+         'DocstringService' for updating docstrings. Ensure these libraries are
+         installed and the source file is syntactically correct for proper operation.
+        """
+        # Note that the qualified function names include class and function nesting but do not include the module name
         with open(file_path, "r") as source_file:
             source_code = source_file.read()
 
         tree = cst.parse_module(source_code)
-        transformer = DocstringService.DocstringUpdater(self, functions_of_interest)
+        transformer = DocstringService.DocstringUpdater(self, qualified_function_names)
         modified_tree = tree.visit(transformer)
         return modified_tree.code, transformer.reports, transformer.modified
