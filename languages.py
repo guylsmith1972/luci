@@ -15,4 +15,3 @@ language_specifications = {
     "cpp": cpp_specification,
     "python": python_specification
 }
-

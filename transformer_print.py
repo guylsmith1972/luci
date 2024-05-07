@@ -1,35 +1,37 @@
 from uniparse import transform
+import transformer
 
 
-class PrintTransformer:
+class PrintTransformer(transformer.Transformer):
     def __init__(self):
+        super().__init__()
         self.level = 0
         
-    def enter_class(self, node, context, body):
-        print(f'{"   " * self.level}Entering class {context[-1]}: {".".join(context)}')
+    def before_enter(self, args):
+        super().before_enter(args)
         self.level += 1
+
+    def after_leave(self, args):
+        super().after_leave(args)
+        self.level -= 1
+
+    def enter_class(self, args):
+        print(f'{"   " * self.level}Entering class {self.qualified_scope_name[-1]}: {self.get_qualified_scope_name()}')
     
-    def leave_class(self, node, context, body):
-        self.level -= 1
-        print(f'{"   " * self.level}Leaving class {context[-1]}: {".".join(context)}')
+    def leave_class(self, args):
+        print(f'{"   " * self.level}Leaving class {self.qualified_scope_name[-1]}: {self.get_qualified_scope_name()}')
         
-    def enter_function(self, node, context, body):
-        print(f'{"   " * self.level}Entering function {context[-1]}: {".".join(context)}')
-        print(body)
-        self.level += 1
+    def enter_function(self, args):
+        print(f'{"   " * self.level}Entering function {self.qualified_scope_name[-1]}: {self.get_qualified_scope_name()}')
+        print(args["code_body"])
 
-    def leave_function(self, node, context, body):
-        self.level -= 1
-        print(f'{"   " * self.level}Leaving function {context[-1]}: {".".join(context)}')
+    def leave_function(self, args):
+        print(f'{"   " * self.level}Leaving function {self.qualified_scope_name[-1]}: {self.get_qualified_scope_name()}')
         
-    def enter_other(self, node, context, body):
-        print(f'{"   " * self.level}{node.type} -- {body}')
-        self.level += 1
+    def enter_other(self, args):
+        print(f'{"   " * self.level}{args["node"].type} -- {args["code_body"]}')
 
-    def leave_other(self, node, context, body):
-        self.level -= 1
         
-
 def main():
     python_code = """
     class MyClass:

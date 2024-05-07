@@ -6,12 +6,10 @@ def transform(source_code, language, transformer):
     specification = languages.language_specifications[language]
     
     actions = {
-        "class": (lambda n, c, b: transformer.enter_class(n, c, b), lambda n, c, b: transformer.leave_class(n, c, b)),
-        "function": (lambda n, c, b: transformer.enter_function(n, c, b), lambda n, c, b: transformer.leave_function(n, c, b)),
-        "other": (lambda n, c, b: transformer.enter_other(n, c, b), lambda n, c, b: transformer.leave_other(n, c, b))
+        "class": (lambda args: transformer.enter_class(args), lambda args: transformer.leave_class(args)),
+        "function": (lambda args: transformer.enter_function(args), lambda args: transformer.leave_function(args)),
+        "other": (lambda args: transformer.enter_other(args), lambda args: transformer.leave_other(args))
     }
-    
-    context = []
     
     def find_node_by_sequence(node, sequence):
         comparator = sequence[0] if callable(sequence[0]) else lambda nt: nt == sequence[0]
@@ -20,25 +18,30 @@ def transform(source_code, language, transformer):
 
     def traverse(node):
         node_type = specification.get(node.type)
-        extended_context = False
         enter_action, leave_action = actions[node_type[0]] if (node_type and node_type[0] in actions) else actions['other']        
         code_body = node.text.decode("utf-8")
+        name = None
             
         if node_type:
             subtype = node_type[1]
             name_node = find_node_by_sequence(node, subtype)
             if name_node:
                 name = name_node.text.decode("utf-8") if isinstance(name_node.text, bytes) else name_node.text
-                context.append(name)
-                extended_context = True
                 
-        enter_action(node, context, code_body)                
+        arguments = {
+            "name": name,
+            "node": node,
+            "code_body": code_body
+            }
+                
+        transformer.before_enter(arguments)
+        enter_action(arguments)                
+        transformer.after_enter(arguments)
         for child in node.children:
             traverse(child)
-        leave_action(node, context, code_body)
-
-        if extended_context:
-            context.pop()
+        transformer.before_leave(arguments)
+        leave_action(arguments)
+        transformer.after_leave(arguments)
 
     parser = get_parser(language)
     parser.set_language(get_language(language))
