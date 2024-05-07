@@ -24,21 +24,18 @@ def transform(source_code, language, transformer):
         enter_action, leave_action = actions[node_type[0]] if (node_type and node_type[0] in actions) else actions['other']        
         code_body = node.text.decode("utf-8")
             
-        if enter_action:
-            if node_type:
-                subtype = node_type[1]
-                name_node = find_node_by_sequence(node, subtype)
-                if name_node:
-                    name = name_node.text.decode("utf-8") if isinstance(name_node.text, bytes) else name_node.text
-                    context.append(name)
-                    extended_context = True
-            enter_action(node, context, code_body)                
-
+        if node_type:
+            subtype = node_type[1]
+            name_node = find_node_by_sequence(node, subtype)
+            if name_node:
+                name = name_node.text.decode("utf-8") if isinstance(name_node.text, bytes) else name_node.text
+                context.append(name)
+                extended_context = True
+                
+        enter_action(node, context, code_body)                
         for child in node.children:
             traverse(child)
-        
-        if leave_action:
-            leave_action(node, context, code_body)
+        leave_action(node, context, code_body)
 
         if extended_context:
             context.pop()
