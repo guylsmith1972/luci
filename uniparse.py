@@ -1,56 +1,9 @@
 from tree_sitter_languages import get_language, get_parser
-
-
-python_specification = {
-    "class_definition": ["class", ["identifier"]],
-    "function_definition": ["function", ["identifier"]]
-}
-
-
-cpp_specification = {
-    "class_specifier": ["class", ["type_identifier"]],
-    "function_definition": ["function", [lambda nt: nt=="function_declarator" or nt=="parenthesized_declarator", lambda nt: nt == "field_identifier" or nt == "identifier"]]
-}
-
-
-languages = {
-    "c": cpp_specification,
-    "cpp": cpp_specification,
-    "python": python_specification
-}
-
-
-class PrintTransformer:
-    def __init__(self):
-        self.level = 0
-        
-    def enter_class(self, node, context, body):
-        print(f'{"   " * self.level}Entering class {context[-1]}: {".".join(context)}')
-        self.level += 1
-    
-    def leave_class(self, node, context, body):
-        self.level -= 1
-        print(f'{"   " * self.level}Leaving class {context[-1]}: {".".join(context)}')
-        
-    def enter_function(self, node, context, body):
-        print(f'{"   " * self.level}Entering function {context[-1]}: {".".join(context)}')
-        print(body)
-        self.level += 1
-
-    def leave_function(self, node, context, body):
-        self.level -= 1
-        print(f'{"   " * self.level}Leaving function {context[-1]}: {".".join(context)}')
-        
-    def enter_other(self, node, context, body):
-        print(f'{"   " * self.level}{node.type} -- {body}')
-        self.level += 1
-
-    def leave_other(self, node, context, body):
-        self.level -= 1
+import languages
 
 
 def transform(source_code, language, transformer):
-    specification = languages[language]
+    specification = languages.language_specifications[language]
     
     actions = {
         "class": (lambda n, c, b: transformer.enter_class(n, c, b), lambda n, c, b: transformer.leave_class(n, c, b)),
@@ -94,33 +47,3 @@ def transform(source_code, language, transformer):
     parser.set_language(get_language(language))
     tree = parser.parse(bytes(source_code, "utf8"))
     traverse(tree.root_node) 
-    
-
-def main():
-    python_code = """
-    class MyClass:
-        def my_method(self, value):
-            return value == 42
-
-    def foo():
-        pass
-    """
-
-    c_code = """
-    class Foo {
-    public:
-        void (do_nothing) {}
-    };
-    
-    int main(int argc, char**argv) {
-        return 0
-    }
-    """
-
-    transform(python_code, 'python', PrintTransformer())
-    transform(c_code, 'cpp', PrintTransformer())
-
-
-if __name__ == '__main__':
-    main()
-    

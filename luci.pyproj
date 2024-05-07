@@ -5,7 +5,7 @@
     <ProjectGuid>e50e2acd-8c1c-4ff7-8946-613eb63e36ed</ProjectGuid>
     <ProjectHome>
     </ProjectHome>
-    <StartupFile>uniparse.py</StartupFile>
+    <StartupFile>transformer_print.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -27,12 +27,14 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="formatting.py" />
+    <Compile Include="languages.py" />
     <Compile Include="samples.py" />
     <Compile Include="luci.py" />
     <Compile Include="docstrings.py" />
     <Compile Include="ollama.py" />
     <Compile Include="queries.py" />
     <Compile Include="testing\example.py" />
+    <Compile Include="transformer_print.py" />
     <Compile Include="uniparse.py" />
   </ItemGroup>
   <ItemGroup>
