@@ -7,7 +7,11 @@ This command-line tool helps to automatically generate, modify, validate, or str
 
 For Windows or WSL users, put dist/luci.exe in a location listed in your PATH environment variable. Standalone executables for other operating systems will be added in time.
 
-You will also need to have [Ollama](https://ollama.com/download) installed, and the ollama executable must be in the PATH. Luci expects llama3 to be installed in Ollama by default. You can install in manually with 'ollama pull llama3' or you can use luci to install it with 'luci --install-model llama3'.
+You will also need to have [Ollama](https://ollama.com/download) installed, and the ollama executable must be in the PATH. Luci expects llama3 to be installed in Ollama by default. You can install it manually with 'ollama pull llama3' or you can use luci to install it with 'luci --install-model llama3'.
+
+## Release Status
+
+This software is in a pre-alpha state. While it provides the intended functionality for Python code, the documentation generated often contains hallucinations and guesses. Do not rely on it for documentation without oversight.
 
 
 # Usage
