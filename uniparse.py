@@ -20,23 +20,6 @@ languages = {
 }
 
 
-def parse(code, language):
-    parser = get_parser(language)
-    parser.set_language(get_language(language))
-
-    tree = parser.parse(bytes(code, "utf8"))
-    return tree.root_node
-
-
-def print_tree(node, language, context, level=0, source_code=None):
-
-    print(f'node.type: {"  " * level}{node.type} -- {node.text}')
-
-    # Recursively process children
-    for child in node.children:
-        print_tree(child, language, context, level+1, source_code)
-
-
 class PrintTransformer:
     def __init__(self):
         self.level = 0
@@ -77,6 +60,13 @@ def transform(source_code, language, transformer):
     }
     
     context = []
+    
+    def parse(code, language):
+        parser = get_parser(language)
+        parser.set_language(get_language(language))
+
+        tree = parser.parse(bytes(code, "utf8"))
+        return tree.root_node
 
     def get_element(node, sequence):
         comparator = sequence[0] if callable(sequence[0]) else lambda nt: nt == sequence[0]
@@ -144,6 +134,7 @@ def main():
 
     print_functions(python_code, 'python')
     print_functions(c_code, 'cpp')
+
 
 if __name__ == '__main__':
     main()
