@@ -6,16 +6,19 @@ python_specification = {
     "function_definition": ["function", ["identifier"]]
 }
 
+
 cpp_specification = {
     "class_specifier": ["class", ["type_identifier"]],
     "function_definition": ["function", [lambda nt: nt=="function_declarator" or nt=="parenthesized_declarator", lambda nt: nt == "field_identifier" or nt == "identifier"]]
 }
+
 
 languages = {
     "c": cpp_specification,
     "cpp": cpp_specification,
     "python": python_specification
 }
+
 
 def parse(code, language):
     parser = get_parser(language)
@@ -34,36 +37,89 @@ def print_tree(node, language, context, level=0, source_code=None):
         print_tree(child, language, context, level+1, source_code)
 
 
-def print_functions(node, language, context, source_code=None):
+class PrintTransformer:
+    def __init__(self):
+        self.level = 0
+        
+    def enter_class(self, node, context):
+        print(f'{"   " * self.level}Entering class {context[-1]}: {".".join(context)}')
+        self.level += 1
+    
+    def leave_class(self, node, context):
+        self.level -= 1
+        print(f'{"   " * self.level}Leaving class {context[-1]}: {".".join(context)}')
+        
+    def enter_function(self, node, context):
+        print(f'{"   " * self.level}Entering function {context[-1]}: {".".join(context)}')
+        code_body = node.text.decode("utf-8")
+        print(code_body)
+        self.level += 1
+
+    def leave_function(self, node, context):
+        self.level -= 1
+        print(f'{"   " * self.level}Leaving function {context[-1]}: {".".join(context)}')
+        
+    def enter_other(self, node, context):
+        print(f'{"   " * self.level}{node.type} -- {node.text}')
+        self.level += 1
+
+    def leave_other(self, node, context):
+        self.level -= 1
+
+
+def transform(source_code, language, transformer):
+    specification = languages[language]
+    
+    actions = {
+        "class": (lambda n, c: transformer.enter_class(n, c), lambda n, c: transformer.leave_class(n, c)),
+        "function": (lambda n, c: transformer.enter_function(n, c), lambda n, c: transformer.leave_function(n, c)),
+        "other": (lambda n, c: transformer.enter_other(n, c), lambda n, c: transformer.leave_other(n, c))
+    }
+    
+    context = []
+
     def get_element(node, sequence):
         comparator = sequence[0] if callable(sequence[0]) else lambda nt: nt == sequence[0]
         next_node = next((child for child in node.children if comparator(child.type)), None)
         return next_node if len(sequence) == 1 else get_element(next_node, sequence[1:]) if next_node else None
 
+    def traverse(node):
+        node_type = specification.get(node.type)
+        extended_context = False
+        enter_action, leave_action = (None, None)
 
-    specification = languages[language]
-    node_type = specification[node.type] if node.type in specification else None
+        if node_type and node_type[0] in actions:
+            enter_action, leave_action = actions[node_type[0]]
+        else:
+            enter_action, leave_action = actions['other']
+            
+        if enter_action:
+            if node_type:
+                subtype = node_type[1]
+                name_node = get_element(node, subtype)
+                if name_node:
+                    name = name_node.text.decode("utf-8") if isinstance(name_node.text, bytes) else name_node.text
+                    context.append(name)
+                    extended_context = True
+            enter_action(node, context)                
+
+        for child in node.children:
+            traverse(child)
+        
+        if leave_action:
+            leave_action(node, context)
+
+        if extended_context:
+            context.pop()
+
+    root_node = parse(source_code, language)
+    traverse(root_node) 
     
-    extended_context = False
-    
-    if node_type is not None and (node_type[0] == 'class' or node_type[0] == 'function'):
-        subtype = node_type[1]
-        name_node = get_element(node, subtype)
-        if name_node:
-            name = name_node.text.decode("utf-8")
-            context.append(name)
-            extended_context = True
-            print(f"Name: {'.'.join(context)}")
-            if node_type[0] == 'function':
-               code_body = node.text.decode("utf-8")
-               print(code_body)
 
-    # Recursively process children
-    for child in node.children:
-        print_functions(child, language, context, source_code)
-
-    if extended_context:
-        context.pop()
+def print_functions(source_code, language):
+    print('=' * 79)
+    transform(source_code, language, PrintTransformer())
+        
 
 def main():
     python_code = """
@@ -86,22 +142,8 @@ def main():
     }
     """
 
-
-    print('=' * 79)
-    root_node = parse(python_code, 'python')
-    print_tree(root_node, 'python', [], source_code=python_code)
-
-    print('-' * 79)
-    root_node = parse(python_code, 'python')
-    print_functions(root_node, 'python', [], source_code=python_code)
-
-    print('=' * 79)
-    root_node = parse(c_code, 'cpp')
-    print_tree(root_node, 'cpp', [], source_code=c_code)
-
-    print('-' * 79)
-    root_node = parse(c_code, 'cpp')
-    print_functions(root_node, 'cpp', [], source_code=c_code)
+    print_functions(python_code, 'python')
+    print_functions(c_code, 'cpp')
 
 if __name__ == '__main__':
     main()
