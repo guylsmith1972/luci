@@ -3,6 +3,8 @@
 
 This command-line tool helps to automatically generate, modify, validate, or strip docstrings in Python files. It utilizes a GPT model for generating docstrings based on the function's code and comments.
 
+Note: Recent increases in context lengths available in Llama-3.1 have rendered the approach used in this tool obsolete.
+
 ## Installation
 
 For Windows or WSL users, put dist/luci.exe in a location listed in your PATH environment variable. Standalone executables for other operating systems will be added in time.
